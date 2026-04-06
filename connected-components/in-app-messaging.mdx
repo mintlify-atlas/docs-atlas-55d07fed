@@ -1,0 +1,212 @@
+---
+title: "In-App Messaging"
+description: "Display in-app notifications and messages using AWS Pinpoint"
+keywords: ["in-app messaging", "notifications", "pinpoint", "push notifications", "aws amplify"]
+---
+
+The In-App Messaging components display targeted messages to users inside your app, powered by Amazon Pinpoint. Messages are configured in Pinpoint and delivered automatically based on campaigns and journeys you define.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react-notifications @aws-amplify/ui-react aws-amplify
+```
+
+## CSS import
+
+```tsx
+import '@aws-amplify/ui-react/styles.css';
+```
+
+## Exported components
+
+| Export | Description |
+|---|---|
+| `InAppMessagingProvider` | Context provider that manages message state and syncs with Pinpoint |
+| `InAppMessageDisplay` | Renders the active in-app message in the appropriate layout (banner, modal, full-screen) |
+| `withInAppMessaging` | HOC that wraps a component with both `InAppMessagingProvider` and `InAppMessageDisplay` |
+| `useInAppMessaging` | Hook for accessing message state and dispatch |
+
+## Basic setup with HOC
+
+The simplest integration is `withInAppMessaging`. It wraps your root component with the provider and message display layer.
+
+<Steps>
+  <Step title="Configure Amplify">
+    ```tsx
+    import { Amplify } from 'aws-amplify';
+    import outputs from './amplify_outputs.json';
+
+    Amplify.configure(outputs);
+    ```
+  </Step>
+  <Step title="Initialize in-app messaging">
+    Call `initializeInAppMessaging` once at app startup to sync messages from Pinpoint:
+
+    ```tsx
+    import { initializeInAppMessaging } from 'aws-amplify/in-app-messaging';
+
+    initializeInAppMessaging();
+    ```
+  </Step>
+  <Step title="Wrap your app with withInAppMessaging">
+    ```tsx
+    import { withInAppMessaging } from '@aws-amplify/ui-react-notifications';
+    import '@aws-amplify/ui-react/styles.css';
+
+    function App() {
+      return (
+        <main>
+          <h1>My App</h1>
+        </main>
+      );
+    }
+
+    export default withInAppMessaging(App);
+    ```
+  </Step>
+</Steps>
+
+## Manual setup with provider and display
+
+Use `InAppMessagingProvider` and `InAppMessageDisplay` directly when you need more control over placement.
+
+```tsx
+import {
+  InAppMessagingProvider,
+  InAppMessageDisplay,
+} from '@aws-amplify/ui-react-notifications';
+import { Amplify } from 'aws-amplify';
+import { initializeInAppMessaging } from 'aws-amplify/in-app-messaging';
+import '@aws-amplify/ui-react/styles.css';
+
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+initializeInAppMessaging();
+
+function Root() {
+  return (
+    <InAppMessagingProvider>
+      {/* InAppMessageDisplay renders above all other content */}
+      <InAppMessageDisplay />
+      <App />
+    </InAppMessagingProvider>
+  );
+}
+```
+
+## Recording analytics events
+
+Pinpoint campaigns deliver messages in response to analytics events. Record events using the Amplify Analytics API to trigger message delivery:
+
+```tsx
+import { record } from 'aws-amplify/analytics';
+
+function ProductPage() {
+  function handleAddToCart() {
+    // Record an analytics event — Pinpoint evaluates it against active campaigns
+    record({ name: 'AddToCart' });
+  }
+
+  return (
+    <button onClick={handleAddToCart}>Add to cart</button>
+  );
+}
+```
+
+## `withInAppMessaging` options
+
+```tsx
+import { withInAppMessaging } from '@aws-amplify/ui-react-notifications';
+
+// Pass custom message components via options
+export default withInAppMessaging(App, {
+  components: {
+    BannerMessage: CustomBannerMessage,
+    ModalMessage: CustomModalMessage,
+    FullScreenMessage: CustomFullScreenMessage,
+  },
+});
+```
+
+## `InAppMessageDisplay` props
+
+<ParamField path="components" type="MessageComponents">
+  Override the default message layout components. Accepts `BannerMessage`, `ModalMessage`, `FullScreenMessage`, and `CarouselMessage`.
+</ParamField>
+
+## Custom message components
+
+You can replace any of the four built-in message layouts:
+
+```tsx
+import {
+  InAppMessagingProvider,
+  InAppMessageDisplay,
+} from '@aws-amplify/ui-react-notifications';
+import type { BannerMessageProps } from '@aws-amplify/ui-react-notifications';
+
+function CustomBanner({ header, body, primaryButton, onClose }: BannerMessageProps) {
+  return (
+    <div style={{ background: '#f0f4ff', padding: '1rem', borderRadius: '8px' }}>
+      {header && <strong>{header.content}</strong>}
+      {body && <p>{body.content}</p>}
+      <div>
+        {primaryButton && (
+          <button onClick={primaryButton.onAction}>
+            {primaryButton.title}
+          </button>
+        )}
+        <button onClick={onClose}>Dismiss</button>
+      </div>
+    </div>
+  );
+}
+
+function Root() {
+  return (
+    <InAppMessagingProvider>
+      <InAppMessageDisplay components={{ BannerMessage: CustomBanner }} />
+      <App />
+    </InAppMessagingProvider>
+  );
+}
+```
+
+## `useInAppMessaging` hook
+
+Access the current message state and dispatch function inside any component within the provider tree:
+
+```tsx
+import { useInAppMessaging } from '@aws-amplify/ui-react-notifications';
+
+function MessageStatus() {
+  const { message, clearMessage } = useInAppMessaging();
+
+  if (!message) return null;
+
+  return (
+    <div>
+      <p>Active message: {message.id}</p>
+      <button onClick={clearMessage}>Dismiss</button>
+    </div>
+  );
+}
+```
+
+## Message layouts
+
+Pinpoint supports four message layouts. The `InAppMessageDisplay` component renders the correct layout based on the `layout` field of the active message:
+
+| Layout | Component | Description |
+|---|---|---|
+| `TOP_BANNER` | `BannerMessage` | Horizontal bar at the top of the screen |
+| `BOTTOM_BANNER` | `BannerMessage` | Horizontal bar at the bottom of the screen |
+| `OVERLAYS` | `ModalMessage` | Centered overlay dialog |
+| `FULL_SCREEN` | `FullScreenMessage` | Full-screen takeover |
+| `CAROUSEL` | `CarouselMessage` | Horizontally scrollable card list |
+
+<Note>
+  Message layout and content are defined in the Amazon Pinpoint console when creating in-app campaigns. The components render whatever content Pinpoint delivers — no additional client-side configuration is required for the message content itself.
+</Note>

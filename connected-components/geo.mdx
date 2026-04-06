@@ -1,0 +1,233 @@
+---
+title: "Geo & Maps"
+description: "Interactive maps and location search powered by Amazon Location Service"
+keywords: ["geo", "maps", "location search", "MapView", "LocationSearch", "amazon location service", "aws amplify"]
+---
+
+The Geo components provide interactive mapping and location search using Amazon Location Service. They wrap [react-map-gl](https://visgl.github.io/react-map-gl/) and [maplibre-gl](https://maplibre.org/) and handle authentication with AWS SigV4 automatically.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react-geo @aws-amplify/ui-react aws-amplify
+```
+
+## CSS imports
+
+Both `maplibre-gl` and the Amplify Geo stylesheet must be imported. Import them before rendering any Geo component:
+
+```tsx
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@aws-amplify/ui-react-geo/styles.css';
+```
+
+## Configure Amplify
+
+```tsx
+import { Amplify } from 'aws-amplify';
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+```
+
+<Note>
+  Your Amplify backend must have Geo configured with at least one map resource. The `MapView` component reads the default map from `Amplify.getConfig().Geo.LocationService.maps.default`.
+</Note>
+
+---
+
+## MapView
+
+`MapView` renders an interactive map. It is a thin wrapper over the [react-map-gl `Map` component](https://visgl.github.io/react-map-gl/docs/api-reference/map/) and accepts all the same props, except `transformRequest` which Amplify manages internally for SigV4 signing.
+
+```tsx
+import { Amplify } from 'aws-amplify';
+import { MapView } from '@aws-amplify/ui-react-geo';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@aws-amplify/ui-react-geo/styles.css';
+
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+
+function MapPage() {
+  return (
+    <MapView
+      initialViewState={{
+        longitude: -122.4194,
+        latitude: 37.7749,
+        zoom: 11,
+      }}
+      style={{ width: '100%', height: '500px' }}
+    />
+  );
+}
+```
+
+### `MapView` props
+
+`MapView` inherits all props from `react-map-gl`'s `Map` component. The most commonly used props are:
+
+<ParamField path="initialViewState" type="object">
+  The initial camera position. Accepts `longitude`, `latitude`, `zoom`, `bearing`, and `pitch`.
+</ParamField>
+
+<ParamField path="style" type="React.CSSProperties">
+  Inline CSS for the map container. Defaults to `{ width: '100vw', height: '100vh' }` when not specified.
+</ParamField>
+
+<ParamField path="mapStyle" type="string">
+  The map style URL. Defaults to the default map configured in your Amplify backend. Override to use a different map resource by its URL.
+</ParamField>
+
+<ParamField path="mapLib" type="typeof maplibregl">
+  Override the underlying map library. Defaults to `maplibre-gl`.
+</ParamField>
+
+<ParamField path="onClick" type="(event: MapLayerMouseEvent) => void">
+  Click handler for the map surface.
+</ParamField>
+
+<ParamField path="onMove" type="(event: ViewStateChangeEvent) => void">
+  Called whenever the camera moves (pan, zoom, rotate).
+</ParamField>
+
+<ParamField path="ref" type="React.Ref<MapRef>">
+  Ref to the underlying map instance. Use `ref.current.getMap()` to access the raw `maplibre-gl` map object.
+</ParamField>
+
+---
+
+## LocationSearch
+
+`LocationSearch` adds a geocoder search box that lets users search for places by name or address. It can be used as a map control inside `<MapView>` or as a standalone component.
+
+### Inside a map
+
+When rendered as a child of `<MapView>`, `LocationSearch` attaches itself as a map control at the specified position.
+
+```tsx
+import { MapView, LocationSearch } from '@aws-amplify/ui-react-geo';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@aws-amplify/ui-react-geo/styles.css';
+
+function MapWithSearch() {
+  return (
+    <MapView
+      initialViewState={{
+        longitude: -122.4194,
+        latitude: 37.7749,
+        zoom: 11,
+      }}
+      style={{ width: '100%', height: '600px' }}
+    >
+      <LocationSearch position="top-right" />
+    </MapView>
+  );
+}
+```
+
+### Standalone
+
+When rendered outside a `<MapView>`, `LocationSearch` mounts as an independent search box without a map.
+
+```tsx
+import { LocationSearch } from '@aws-amplify/ui-react-geo';
+import '@aws-amplify/ui-react-geo/styles.css';
+
+function SearchPage() {
+  return (
+    <LocationSearch />
+  );
+}
+```
+
+### `LocationSearch` props
+
+<ParamField path="position" type="string" default="top-right">
+  Position of the search control on the map. Accepted values: `"top-left"`, `"top-right"`, `"bottom-left"`, `"bottom-right"`. Only applies when used inside `<MapView>`.
+</ParamField>
+
+<ParamField path="marker" type="object">
+  Customize the result marker. Defaults to `{ color: '#3FB1CE' }`.
+</ParamField>
+
+<ParamField path="popup" type="boolean" default="true">
+  Show a popup with the place name when a result marker is clicked.
+</ParamField>
+
+<ParamField path="showResultMarkers" type="boolean | object" default="{ color: '#3FB1CE' }">
+  Show markers for all results, or pass `false` to disable result markers.
+</ParamField>
+
+<ParamField path="showResultsWhileTyping" type="boolean" default="true">
+  Fetch and display results as the user types, without requiring them to press Enter.
+</ParamField>
+
+---
+
+## Map with custom markers
+
+Use the `Marker` component from `react-map-gl` to add custom markers to the map:
+
+```tsx
+import { useState } from 'react';
+import { Marker } from 'react-map-gl';
+import { MapView } from '@aws-amplify/ui-react-geo';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@aws-amplify/ui-react-geo/styles.css';
+
+function MapWithMarkers() {
+  const [markers] = useState([
+    { id: 1, longitude: -122.4194, latitude: 37.7749, label: 'San Francisco' },
+    { id: 2, longitude: -118.2437, latitude: 34.0522, label: 'Los Angeles' },
+  ]);
+
+  return (
+    <MapView
+      initialViewState={{ longitude: -120, latitude: 36, zoom: 5 }}
+      style={{ width: '100%', height: '600px' }}
+    >
+      {markers.map(({ id, longitude, latitude, label }) => (
+        <Marker key={id} longitude={longitude} latitude={latitude}>
+          <div title={label} style={{ cursor: 'pointer' }}>📍</div>
+        </Marker>
+      ))}
+    </MapView>
+  );
+}
+```
+
+---
+
+## Controlled camera state
+
+Use `onMove` and `initialViewState` to build a controlled map:
+
+```tsx
+import { useState } from 'react';
+import { MapView } from '@aws-amplify/ui-react-geo';
+import type { ViewState } from 'react-map-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import '@aws-amplify/ui-react-geo/styles.css';
+
+function ControlledMap() {
+  const [viewState, setViewState] = useState<Partial<ViewState>>({
+    longitude: -122.4194,
+    latitude: 37.7749,
+    zoom: 11,
+  });
+
+  return (
+    <MapView
+      {...viewState}
+      onMove={(event) => setViewState(event.viewState)}
+      style={{ width: '100%', height: '600px' }}
+    />
+  );
+}
+```
+
+<Tip>
+  `MapView` defaults to filling the full viewport (`width: 100vw, height: 100vh`). Always pass an explicit `style` prop to constrain the map to a specific container size.
+</Tip>

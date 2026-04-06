@@ -1,0 +1,199 @@
+---
+title: 'Angular setup'
+description: 'Configure Amplify UI for your Angular application'
+keywords: ['amplify', 'angular', 'setup', 'ngmodule', 'standalone', 'authenticator']
+---
+
+This guide walks through adding `@aws-amplify/ui-angular` to an Angular 19+ application. Choose the approach that matches your app structure: NgModule or standalone components.
+
+## NgModule setup
+
+<Steps>
+  <Step title="Install packages">
+    ```bash
+    npm install @aws-amplify/ui-angular aws-amplify
+    ```
+  </Step>
+
+  <Step title="Import AmplifyAuthenticatorModule">
+    Add `AmplifyAuthenticatorModule` to the `imports` array of your root `AppModule`:
+
+    ```typescript app.module.ts
+    import { NgModule } from '@angular/core';
+    import { BrowserModule } from '@angular/platform-browser';
+    import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+
+    import { AppComponent } from './app.component';
+
+    @NgModule({
+      declarations: [AppComponent],
+      imports: [BrowserModule, AmplifyAuthenticatorModule],
+      bootstrap: [AppComponent],
+    })
+    export class AppModule {}
+    ```
+  </Step>
+
+  <Step title="Add the stylesheet">
+    Add the Amplify UI stylesheet to the `styles` array in `angular.json`:
+
+    ```json angular.json
+    {
+      "projects": {
+        "your-app": {
+          "architect": {
+            "build": {
+              "options": {
+                "styles": [
+                  "node_modules/@aws-amplify/ui-angular/theme.css",
+                  "src/styles.css"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Configure Amplify">
+    Initialize Amplify in `main.ts` before bootstrapping:
+
+    ```typescript main.ts
+    import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+    import { Amplify } from 'aws-amplify';
+    import outputs from '../amplify_outputs.json';
+
+    import { AppModule } from './app/app.module';
+
+    Amplify.configure(outputs);
+
+    platformBrowserDynamic()
+      .bootstrapModule(AppModule)
+      .catch((err) => console.error(err));
+    ```
+  </Step>
+
+  <Step title="Use the Authenticator component">
+    Add `<amplify-authenticator>` to your component template:
+
+    ```html app.component.html
+    <amplify-authenticator>
+      <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
+        <h1>Welcome, {{ user.username }}!</h1>
+        <button (click)="signOut()">Sign out</button>
+      </ng-template>
+    </amplify-authenticator>
+    ```
+  </Step>
+</Steps>
+
+## Standalone component setup
+
+Angular 19 supports standalone components without an NgModule. Import `AmplifyAuthenticatorModule` directly in the `imports` array of a standalone component.
+
+<Steps>
+  <Step title="Install packages">
+    ```bash
+    npm install @aws-amplify/ui-angular aws-amplify
+    ```
+  </Step>
+
+  <Step title="Add the stylesheet to angular.json">
+    ```json angular.json
+    {
+      "projects": {
+        "your-app": {
+          "architect": {
+            "build": {
+              "options": {
+                "styles": [
+                  "node_modules/@aws-amplify/ui-angular/theme.css",
+                  "src/styles.css"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Configure Amplify">
+    ```typescript main.ts
+    import { bootstrapApplication } from '@angular/platform-browser';
+    import { Amplify } from 'aws-amplify';
+    import outputs from '../amplify_outputs.json';
+
+    import { AppComponent } from './app/app.component';
+
+    Amplify.configure(outputs);
+
+    bootstrapApplication(AppComponent);
+    ```
+  </Step>
+
+  <Step title="Import the module in your standalone component">
+    ```typescript app.component.ts
+    import { Component } from '@angular/core';
+    import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+
+    @Component({
+      selector: 'app-root',
+      standalone: true,
+      imports: [AmplifyAuthenticatorModule],
+      templateUrl: './app.component.html',
+    })
+    export class AppComponent {}
+    ```
+
+    ```html app.component.html
+    <amplify-authenticator>
+      <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
+        <h1>Welcome, {{ user.username }}!</h1>
+        <button (click)="signOut()">Sign out</button>
+      </ng-template>
+    </amplify-authenticator>
+    ```
+  </Step>
+</Steps>
+
+## TypeScript configuration
+
+Ensure `compilerOptions` in your `tsconfig.json` includes settings compatible with Angular 19:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "useDefiningForClassFields": false,
+    "lib": ["ES2022", "dom"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler"
+  }
+}
+```
+
+## Customizing sign-up fields
+
+Use the `amplifySlot` directive to render custom fields alongside the defaults:
+
+```html app.component.html
+<amplify-authenticator>
+  <ng-template amplifySlot="sign-up-fields">
+    <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
+  </ng-template>
+</amplify-authenticator>
+```
+
+<Note>
+  `<amplify-sign-up-form-fields>` renders the default sign-up fields. Place your custom Angular form controls before or after it inside the slot.
+</Note>
+
+## Related
+
+- [Angular overview](/frameworks/angular/overview) — What's included in the Angular package
+- [Authenticator component](/connected-components/authenticator) — Full Authenticator reference and slot customization

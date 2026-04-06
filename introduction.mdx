@@ -1,0 +1,71 @@
+---
+title: "Amplify UI"
+description: "Accessible, themeable, cloud-connected UI components for React, Angular, Vue, and React Native."
+---
+
+Amplify UI is an open-source component library that makes it easy to build cloud-connected web and mobile applications. It provides both high-level connected components (like a fully-featured Authenticator) and low-level primitives (like Button, TextField, and Flex) — all accessible, customizable, and built to integrate with AWS Amplify.
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="box" href="/getting-started/installation">
+    Install Amplify UI for your framework and get set up in minutes.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/getting-started/quickstart">
+    Build your first authenticated app with Amplify UI.
+  </Card>
+  <Card title="Connected Components" icon="plug" href="/connected-components/authenticator">
+    Drop-in components for auth, storage, liveness detection, and more.
+  </Card>
+  <Card title="Primitives" icon="shapes" href="/primitives/overview">
+    50+ accessible, themeable base components for building your UI.
+  </Card>
+  <Card title="Theming" icon="palette" href="/theming/overview">
+    Customize every detail with design tokens and CSS variables.
+  </Card>
+  <Card title="AI Conversation" icon="message-bot" href="/ai/ai-conversation">
+    Integrate AI-powered chat interfaces backed by AWS Bedrock.
+  </Card>
+</CardGroup>
+
+## What's included
+
+Amplify UI has three categories of components:
+
+**Connected components** handle complex cloud workflows out of the box. Drop in the `Authenticator` and you get a fully-functional sign-in/sign-up flow with MFA, SSO, and passkeys — no backend code required.
+
+**Primitive components** are the building blocks of your UI: layout containers (`Flex`, `Grid`, `View`), form elements (`TextField`, `SelectField`, `CheckboxField`), and display elements (`Badge`, `Alert`, `Table`). They follow WCAG accessibility guidelines and integrate with the Amplify theming system.
+
+**The theme system** lets you customize every design token — colors, spacing, typography, radii — globally or per-component, with full dark mode support.
+
+## Framework support
+
+<CardGroup cols={2}>
+  <Card title="React" icon="react" href="/frameworks/react/overview">
+    Full primitive + connected component support. Works with Next.js, Vite, and Create React App.
+  </Card>
+  <Card title="Angular" icon="angular" href="/frameworks/angular/overview">
+    Connected components for Angular applications, including the Authenticator.
+  </Card>
+  <Card title="Vue" icon="vuejs" href="/frameworks/vue/overview">
+    Connected components for Vue 3 applications.
+  </Card>
+  <Card title="React Native" icon="mobile" href="/frameworks/react-native/overview">
+    Authenticator and in-app messaging for React Native apps.
+  </Card>
+</CardGroup>
+
+## Getting started
+
+<Steps>
+  <Step title="Install the package">
+    Install `@aws-amplify/ui-react` (or your framework's package) and `aws-amplify`.
+  </Step>
+  <Step title="Configure Amplify">
+    Call `Amplify.configure()` with your backend outputs at the root of your app.
+  </Step>
+  <Step title="Add a component">
+    Import and render a connected component like `<Authenticator>` or a primitive like `<Button>`.
+  </Step>
+  <Step title="Customize the theme">
+    Use `createTheme` and `<ThemeProvider>` to match your brand.
+  </Step>
+</Steps>

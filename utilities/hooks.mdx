@@ -1,0 +1,436 @@
+---
+title: 'Hooks'
+description: 'React hooks for theming, breakpoints, auth state, and storage URLs'
+keywords: ['hooks', 'react', 'useAuthenticator', 'useTheme', 'useColorMode', 'useBreakpointValue', 'useStorageURL']
+---
+
+Amplify UI ships several React hooks for working with themes, responsive breakpoints, and authentication. The public hooks are exported from `@aws-amplify/ui-react`; `useAuthenticator` is re-exported from `@aws-amplify/ui-react-core`.
+
+```tsx
+import {
+  useTheme,
+  useColorMode,
+  useBreakpointValue,
+} from '@aws-amplify/ui-react';
+
+// Authenticator hook (re-exported from @aws-amplify/ui-react-core)
+import { useAuthenticator } from '@aws-amplify/ui-react';
+```
+
+<Note>
+  `useAuth` and `useStorageURL` are internal utilities exported from `@aws-amplify/ui-react/internal`. They are not part of the stable public API and may change without notice.
+</Note>
+
+---
+
+## `useAuthenticator`
+
+Access the Authenticator state machine context from anywhere inside an `<Authenticator>` tree. Returns the full authentication facade including the current route, user object, auth status, and action methods.
+
+### Signature
+
+```typescript
+function useAuthenticator(
+  selector?: (context: AuthenticatorMachineContext) => AuthenticatorMachineContext[keyof AuthenticatorMachineContext][]
+): UseAuthenticator
+```
+
+### Parameters
+
+<ParamField path="selector" type="(context: AuthenticatorMachineContext) => any[]">
+  Optional selector function that controls which context values trigger a re-render. When omitted, the component re-renders on any context change. Pass a selector to subscribe only to the values you need.
+</ParamField>
+
+### Return value
+
+<ResponseField name="authStatus" type="'configuring' | 'authenticated' | 'unauthenticated'">
+  The current authentication status. Updates on sign-in/sign-out events, including those triggered outside the `Authenticator` component.
+</ResponseField>
+
+<ResponseField name="route" type="AuthenticatorRoute">
+  The current step in the authentication flow (for example, `'signIn'`, `'signUp'`, `'authenticated'`).
+</ResponseField>
+
+<ResponseField name="user" type="AuthUser">
+  The currently signed-in Amplify user object. Contains `username` and `userId`.
+</ResponseField>
+
+<ResponseField name="signOut" type="() => void">
+  Signs the current user out and resets the Authenticator state.
+</ResponseField>
+
+<ResponseField name="error" type="string">
+  The most recent error message returned by the authentication flow, if any.
+</ResponseField>
+
+<ResponseField name="isPending" type="boolean">
+  `true` while an async authentication action (sign in, sign up, etc.) is in progress.
+</ResponseField>
+
+### Usage
+
+```tsx ProfileMenu.tsx
+import { useAuthenticator } from '@aws-amplify/ui-react';
+
+export function ProfileMenu() {
+  const { user, signOut, authStatus } = useAuthenticator((context) => [
+    context.user,
+    context.authStatus,
+  ]);
+
+  if (authStatus !== 'authenticated') return null;
+
+  return (
+    <div>
+      <span>Signed in as {user.username}</span>
+      <button onClick={signOut}>Sign out</button>
+    </div>
+  );
+}
+```
+
+<Tip>
+  Pass a selector to avoid unnecessary re-renders. The component only re-renders when the selected values change.
+</Tip>
+
+---
+
+## `useAuth` (internal)
+
+<Warning>
+  `useAuth` is exported from `@aws-amplify/ui-react/internal` and is not part of the stable public API. Import it as `import { useAuth } from '@aws-amplify/ui-react/internal'`. It may change without notice. For stable auth state access, prefer `useAuthenticator`.
+</Warning>
+
+A lower-level hook that tracks authentication state by listening to Amplify Hub auth events. Use this when you need auth state outside an `<Authenticator>` component tree and do not need access to the state machine.
+
+### Signature
+
+```typescript
+function useAuth(): UseAuthResult
+```
+
+### Return value
+
+<ResponseField name="user" type="AuthUser | undefined">
+  The currently signed-in Amplify user, or `undefined` when the user is not authenticated.
+</ResponseField>
+
+<ResponseField name="isLoading" type="boolean">
+  `true` while the initial user fetch is in progress.
+</ResponseField>
+
+<ResponseField name="error" type="Error | undefined">
+  An error from the most recent auth operation, if any.
+</ResponseField>
+
+### Usage
+
+```tsx UserStatus.tsx
+import { useAuth } from '@aws-amplify/ui-react/internal';
+
+export function UserStatus() {
+  const { user, isLoading, error } = useAuth();
+
+  if (isLoading) return <span>Loading...</span>;
+  if (error) return <span>Error: {error.message}</span>;
+  if (!user) return <span>Not signed in</span>;
+
+  return <span>Signed in as {user.username}</span>;
+}
+```
+
+---
+
+## `useTheme`
+
+Returns the current `WebTheme` object from the nearest `<ThemeProvider>`. Falls back to the default Amplify theme when no provider is present.
+
+### Signature
+
+```typescript
+function useTheme(): WebTheme
+```
+
+### Return value
+
+<ResponseField name="WebTheme" type="object">
+  The complete theme object including design tokens for colors, typography, spacing, borders, and shadows, as well as breakpoint configuration. Structure matches the value passed to `createTheme`.
+</ResponseField>
+
+### Usage
+
+```tsx ThemedComponent.tsx
+import { useTheme } from '@aws-amplify/ui-react';
+
+export function ThemedComponent() {
+  const { tokens } = useTheme();
+
+  return (
+    <div
+      style={{
+        backgroundColor: tokens.colors.background.primary.value,
+        color: tokens.colors.font.primary.value,
+        padding: tokens.space.medium.value,
+        borderRadius: tokens.radii.medium.value,
+      }}
+    >
+      Themed content
+    </div>
+  );
+}
+```
+
+<CodeGroup>
+
+```tsx with ThemeProvider
+import { ThemeProvider, createTheme, useTheme } from '@aws-amplify/ui-react';
+
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      brand: {
+        primary: { value: '#6B21A8' },
+      },
+    },
+  },
+});
+
+function BrandButton() {
+  const { tokens } = useTheme();
+  return (
+    <button style={{ background: tokens.colors.brand.primary.value }}>
+      Brand button
+    </button>
+  );
+}
+
+export function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <BrandButton />
+    </ThemeProvider>
+  );
+}
+```
+
+```tsx without ThemeProvider
+import { useTheme } from '@aws-amplify/ui-react';
+
+// Returns the default Amplify theme when no ThemeProvider is present
+function DefaultThemeComponent() {
+  const { tokens } = useTheme();
+  return <div style={{ color: tokens.colors.font.primary.value }}>Hello</div>;
+}
+```
+
+</CodeGroup>
+
+---
+
+## `useColorMode`
+
+Returns the current color mode (`'light'`, `'dark'`, or `'system'`) from the nearest `<ThemeProvider>`. Returns `undefined` when no `ThemeProvider` is present.
+
+### Signature
+
+```typescript
+function useColorMode(): ColorMode | undefined
+// type ColorMode = 'system' | 'light' | 'dark'
+```
+
+### Return value
+
+<ResponseField name="colorMode" type="'system' | 'light' | 'dark' | undefined">
+  The color mode set on the nearest `ThemeProvider`, or `undefined` when there is no provider.
+</ResponseField>
+
+### Usage
+
+```tsx ColorModeIndicator.tsx
+import { useColorMode } from '@aws-amplify/ui-react';
+
+export function ColorModeIndicator() {
+  const colorMode = useColorMode();
+
+  return (
+    <span>
+      Current color mode: {colorMode ?? 'none (no ThemeProvider)'}
+    </span>
+  );
+}
+```
+
+---
+
+## `useBreakpointValue`
+
+Returns a value from a responsive map or array based on the current viewport breakpoint. The active breakpoint is derived from the theme's breakpoint configuration.
+
+### Signature
+
+```typescript
+function useBreakpointValue<T = unknown>(
+  values: Record<string, T> | T[],
+  defaultBreakpoint?: Breakpoint,
+  propKey?: string
+): T | string | number | null
+```
+
+### Parameters
+
+<ParamField path="values" type="Record<string, T> | T[]" required>
+  A map of breakpoint names to values, or an array of values ordered from smallest to largest breakpoint. Supported breakpoint keys are `'base'`, `'small'`, `'medium'`, `'large'`, `'xl'`, and `'xxl'`.
+</ParamField>
+
+<ParamField path="defaultBreakpoint" type="Breakpoint" default="'base'">
+  The breakpoint to use when no window is available (for example, during server-side rendering).
+</ParamField>
+
+<ParamField path="propKey" type="string">
+  When the resolved value is a design token, `propKey` identifies which CSS property the token applies to so the correct CSS variable is returned.
+</ParamField>
+
+### Return value
+
+<ResponseField name="value" type="T | string | number | null">
+  The value corresponding to the currently active breakpoint. If the value is a design token, the resolved CSS variable string is returned.
+</ResponseField>
+
+### Usage
+
+```tsx ResponsiveLayout.tsx
+import { useBreakpointValue } from '@aws-amplify/ui-react';
+
+export function ResponsiveLayout() {
+  const columns = useBreakpointValue({
+    base: 1,
+    medium: 2,
+    large: 3,
+  });
+
+  const fontSize = useBreakpointValue({
+    base: '14px',
+    medium: '16px',
+    large: '18px',
+  });
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+        fontSize: fontSize as string,
+      }}
+    >
+      <div>Item 1</div>
+      <div>Item 2</div>
+      <div>Item 3</div>
+    </div>
+  );
+}
+```
+
+```tsx array syntax
+import { useBreakpointValue } from '@aws-amplify/ui-react';
+
+// Array values map to breakpoints in order: base, small, medium, large, xl, xxl
+export function ResponsivePadding() {
+  const padding = useBreakpointValue(['8px', '12px', '16px', '24px']);
+
+  return (
+    <section style={{ padding: padding as string }}>
+      Content with responsive padding
+    </section>
+  );
+}
+```
+
+---
+
+## `useStorageURL` (internal)
+
+<Warning>
+  `useStorageURL` is exported from `@aws-amplify/ui-react/internal` and is not part of the stable public API. Import it as `import { useStorageURL } from '@aws-amplify/ui-react/internal'`. It may change without notice. For displaying S3-stored images, consider using the `StorageImage` component from `@aws-amplify/ui-react-storage`.
+</Warning>
+
+Returns a pre-signed S3 URL for an object stored via Amplify Storage. The URL is fetched on mount and refreshed whenever `key` changes.
+
+### Signature
+
+```typescript
+function useStorageURL(params: UseStorageURLParams): string | undefined
+```
+
+### Parameters
+
+<ParamField path="key" type="string" required>
+  The S3 object key to generate a pre-signed URL for.
+</ParamField>
+
+<ParamField path="options" type="GetUrlInput['options']">
+  Options passed directly to the Amplify `getUrl` function, such as `accessLevel`, `targetIdentityId`, and `expiresIn`.
+</ParamField>
+
+<ParamField path="fallbackURL" type="string">
+  A URL to use when the storage request fails. Useful for rendering a placeholder image.
+</ParamField>
+
+<ParamField path="onStorageGetError" type="(error: Error) => void">
+  Callback invoked when the `getUrl` call throws. Use this to log errors or show user-facing feedback.
+</ParamField>
+
+### Return value
+
+<ResponseField name="url" type="string | undefined">
+  The pre-signed URL string once resolved, or `undefined` while loading or if the key is empty.
+</ResponseField>
+
+### Usage
+
+```tsx UserAvatar.tsx
+import { useStorageURL } from '@aws-amplify/ui-react/internal';
+
+interface UserAvatarProps {
+  storageKey: string;
+}
+
+export function UserAvatar({ storageKey }: UserAvatarProps) {
+  const url = useStorageURL({
+    key: storageKey,
+    options: { expiresIn: 3600 },
+    fallbackURL: '/default-avatar.png',
+    onStorageGetError: (error) => {
+      console.error('Failed to load avatar:', error);
+    },
+  });
+
+  return (
+    <img
+      src={url ?? '/default-avatar.png'}
+      alt="User avatar"
+      width={64}
+      height={64}
+    />
+  );
+}
+```
+
+```tsx ProtectedImage.tsx
+import { useStorageURL } from '@aws-amplify/ui-react/internal';
+
+// Fetch a private image using the current user's identity
+export function ProtectedImage({ fileKey }: { fileKey: string }) {
+  const url = useStorageURL({
+    key: fileKey,
+    options: {
+      accessLevel: 'private',
+      expiresIn: 900,
+    },
+  });
+
+  if (!url) return <div>Loading image...</div>;
+
+  return <img src={url} alt="Protected content" style={{ maxWidth: '100%' }} />;
+}
+```

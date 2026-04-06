@@ -1,0 +1,352 @@
+---
+title: "Feedback primitives"
+description: "Alert, Loader, Message, Placeholder, and VisuallyHidden for communicating state and loading in Amplify UI."
+keywords: ["feedback", "alert", "loader", "message", "placeholder", "loading skeleton", "amplify ui"]
+---
+
+Feedback primitives communicate state to users — loading progress, status messages, and error or success conditions.
+
+```tsx
+import {
+  Alert,
+  Loader,
+  Message,
+  Placeholder,
+  VisuallyHidden,
+} from '@aws-amplify/ui-react';
+```
+
+---
+
+## Alert
+
+`Alert` displays an inline status message. Use `variation` to signal the nature of the message and `isDismissible` to let the user close it.
+
+<CodeGroup>
+
+```tsx Variations
+<Flex direction="column" gap="small">
+  <Alert variation="info" heading="Note">
+    Your session will expire in 10 minutes.
+  </Alert>
+  <Alert variation="success" heading="Saved">
+    Your changes have been saved successfully.
+  </Alert>
+  <Alert variation="warning" heading="Deprecation notice">
+    This API version will be removed on 1 January 2027.
+  </Alert>
+  <Alert variation="error" heading="Upload failed">
+    The file exceeds the 10 MB size limit.
+  </Alert>
+</Flex>
+```
+
+```tsx Dismissible
+import { useState } from 'react';
+
+function DismissibleAlert() {
+  const [visible, setVisible] = useState(true);
+
+  if (!visible) return null;
+
+  return (
+    <Alert
+      variation="info"
+      heading="New feature available"
+      isDismissible
+      onDismiss={() => setVisible(false)}
+    >
+      Try the new dashboard view from the sidebar.
+    </Alert>
+  );
+}
+```
+
+```tsx Without icon
+<Alert variation="warning" hasIcon={false}>
+  Review your billing details before continuing.
+</Alert>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="variation" type="'info' | 'warning' | 'error' | 'success'">
+  Sets the background color and default icon of the alert.
+</ParamField>
+
+<ParamField path="heading" type="React.ReactNode">
+  Bold heading text rendered at the top of the alert.
+</ParamField>
+
+<ParamField path="isDismissible" type="boolean" default="false">
+  Shows a close button. Pair with `onDismiss` to handle visibility.
+</ParamField>
+
+<ParamField path="onDismiss" type="() => void">
+  Called when the user clicks the dismiss button.
+</ParamField>
+
+<ParamField path="dismissButtonLabel" type="string" default="Dismiss alert">
+  Accessible label for the dismiss button.
+</ParamField>
+
+<ParamField path="hasIcon" type="boolean" default="true">
+  Controls whether the variation icon is shown.
+</ParamField>
+
+---
+
+## Loader
+
+`Loader` renders an animated loading indicator. The default variation is a circular spinner (SVG). Set `variation="linear"` for a progress bar.
+
+<CodeGroup>
+
+```tsx Circular (default)
+<Flex gap="medium" alignItems="center">
+  <Loader size="small" />
+  <Loader />
+  <Loader size="large" />
+</Flex>
+```
+
+```tsx Linear
+<Loader variation="linear" />
+```
+
+```tsx Determinate
+<Loader
+  variation="linear"
+  isDeterminate
+  percentage={65}
+/>
+```
+
+```tsx Custom colors
+<Loader
+  filledColor="hsl(270, 60%, 50%)"
+  emptyColor="hsl(270, 60%, 90%)"
+/>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="size" type="'small' | 'large'">
+  Controls the rendered size of the loader.
+</ParamField>
+
+<ParamField path="variation" type="'linear'">
+  When set to `"linear"`, renders a horizontal progress bar instead of a spinner.
+</ParamField>
+
+<ParamField path="isDeterminate" type="boolean" default="false">
+  When `true`, the loader shows the `percentage` value as a filled arc or bar. Works with both circular and linear variations.
+</ParamField>
+
+<ParamField path="percentage" type="number">
+  Fill percentage (0–100) when `isDeterminate` is `true`.
+</ParamField>
+
+<ParamField path="isPercentageTextHidden" type="boolean" default="false">
+  Hides the numeric percentage text inside a determinate loader.
+</ParamField>
+
+<ParamField path="filledColor" type="string">
+  Color of the filled portion. Accepts a CSS color value or design token.
+</ParamField>
+
+<ParamField path="emptyColor" type="string">
+  Color of the empty (unfilled) portion.
+</ParamField>
+
+---
+
+## Message
+
+`Message` is a richer notification component with variations for style and color. It is similar to `Alert` but supports `variation` (layout style) independently of `colorTheme` (semantic color).
+
+<CodeGroup>
+
+```tsx Color themes
+<Flex direction="column" gap="small">
+  <Message colorTheme="neutral">Neutral message.</Message>
+  <Message colorTheme="info">Informational message.</Message>
+  <Message colorTheme="success">Action completed successfully.</Message>
+  <Message colorTheme="warning">Attention required.</Message>
+  <Message colorTheme="error">Something went wrong.</Message>
+</Flex>
+```
+
+```tsx Layout variations
+<Flex direction="column" gap="small">
+  <Message colorTheme="info">Plain (default)</Message>
+  <Message colorTheme="info" variation="outlined">Outlined</Message>
+  <Message colorTheme="info" variation="filled">Filled</Message>
+</Flex>
+```
+
+```tsx With heading and dismissible
+import { useState } from 'react';
+
+function StatusMessage() {
+  const [shown, setShown] = useState(true);
+
+  if (!shown) return null;
+
+  return (
+    <Message
+      colorTheme="success"
+      variation="outlined"
+      heading="Deployment complete"
+      isDismissible
+      onDismiss={() => setShown(false)}
+    >
+      Your application was deployed to production at 14:23 UTC.
+    </Message>
+  );
+}
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="colorTheme" type="'neutral' | 'info' | 'error' | 'warning' | 'success'">
+  Semantic color scheme that determines the icon and accent color.
+</ParamField>
+
+<ParamField path="variation" type="'plain' | 'outlined' | 'filled'" default="plain">
+  Visual style of the message container.
+</ParamField>
+
+<ParamField path="heading" type="React.ReactNode">
+  Bold heading text rendered above the message body.
+</ParamField>
+
+<ParamField path="isDismissible" type="boolean" default="false">
+  Shows a dismiss (close) button.
+</ParamField>
+
+<ParamField path="onDismiss" type="() => void">
+  Called when the user clicks the dismiss button.
+</ParamField>
+
+<ParamField path="dismissLabel" type="string">
+  Accessible label for the dismiss button.
+</ParamField>
+
+<ParamField path="hasIcon" type="boolean" default="true">
+  Controls whether the semantic icon is shown.
+</ParamField>
+
+---
+
+## Placeholder
+
+`Placeholder` renders an animated loading skeleton. Use it in place of content that has not yet loaded.
+
+<CodeGroup>
+
+```tsx Content skeleton
+<Flex direction="column" gap="small">
+  <Placeholder height="24px" width="40%" />
+  <Placeholder height="16px" />
+  <Placeholder height="16px" />
+  <Placeholder height="16px" width="80%" />
+</Flex>
+```
+
+```tsx Conditional display
+interface ProfileCardProps {
+  user?: { name: string; bio: string };
+}
+
+function ProfileCard({ user }: ProfileCardProps) {
+  return (
+    <Card padding="large">
+      <Placeholder isLoaded={!!user} height="32px" width="60%">
+        <Heading level={3}>{user?.name}</Heading>
+      </Placeholder>
+      <Placeholder isLoaded={!!user} height="16px" marginTop="small">
+        <Text>{user?.bio}</Text>
+      </Placeholder>
+    </Card>
+  );
+}
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="isLoaded" type="boolean" default="false">
+  When `true`, hides the skeleton and renders `children` instead.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Controls the default height of the skeleton when no explicit `height` is set.
+</ParamField>
+
+<ParamField path="startColor" type="string">
+  Animation start color. Accepts a CSS color value or design token.
+</ParamField>
+
+<ParamField path="endColor" type="string">
+  Animation end color.
+</ParamField>
+
+<Tip>
+  You can set `width` and `height` directly on `Placeholder` as style props to match the shape of the content it is standing in for. This makes the transition from skeleton to content visually smooth.
+</Tip>
+
+---
+
+## VisuallyHidden
+
+`VisuallyHidden` renders children that are visible only to assistive technologies (screen readers). The content is positioned off-screen and not visible to sighted users.
+
+Use it to provide additional context for interactive elements that rely on visual cues alone.
+
+```tsx
+<Button onClick={deleteItem}>
+  <Icon ariaLabel="" />
+  <VisuallyHidden>Delete item</VisuallyHidden>
+</Button>
+```
+
+Or to provide a live region announcement:
+
+```tsx
+import { useState } from 'react';
+
+function SaveButton() {
+  const [saved, setSaved] = useState(false);
+
+  async function handleSave() {
+    await save();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  }
+
+  return (
+    <>
+      <Button variation="primary" onClick={handleSave}>
+        Save
+      </Button>
+      {saved && (
+        <VisuallyHidden aria-live="polite">
+          Changes saved successfully.
+        </VisuallyHidden>
+      )}
+    </>
+  );
+}
+```
+
+<Note>
+  `VisuallyHidden` does not use `display: none` or `visibility: hidden`, which would hide content from screen readers. It uses a CSS technique that moves the element off-screen while keeping it in the accessibility tree.
+</Note>

@@ -1,0 +1,213 @@
+---
+title: 'Responsive Design'
+description: 'Use breakpoints and responsive prop values for adaptive layouts'
+keywords: ['responsive', 'breakpoints', 'useBreakpointValue', 'mobile-first', 'theming']
+---
+
+Amplify UI uses a mobile-first breakpoint system. Styles are applied at the `base` breakpoint by default and replaced at larger breakpoints using `min-width` media queries. You can pass responsive values directly to component style props, or read the current breakpoint in your own code with provided hooks.
+
+## Breakpoints
+
+The default breakpoints and their pixel thresholds are:
+
+| Name | CSS variable pattern | Min-width |
+|---|---|---|
+| `base` | _(no media query)_ | `0px` |
+| `small` | `@media (min-width: 480px)` | `480px` |
+| `medium` | `@media (min-width: 768px)` | `768px` |
+| `large` | `@media (min-width: 992px)` | `992px` |
+| `xl` | `@media (min-width: 1280px)` | `1280px` |
+| `xxl` | `@media (min-width: 1536px)` | `1536px` |
+
+The default breakpoint for resolving unspecified props is `base`.
+
+### Custom breakpoints
+
+Override breakpoint values in `createTheme`:
+
+```tsx
+import { createTheme } from '@aws-amplify/ui';
+
+const theme = createTheme({
+  name: 'custom-breakpoints',
+  breakpoints: {
+    values: {
+      base: 0,
+      small: 360,
+      medium: 600,
+      large: 960,
+      xl: 1200,
+      xxl: 1440,
+    },
+  },
+});
+```
+
+## Responsive prop values
+
+Any Amplify UI style prop accepts a breakpoint map. The component applies the value for the closest active breakpoint, working from smallest to largest (mobile-first).
+
+```tsx
+import { Flex, Text } from '@aws-amplify/ui-react';
+
+// Direction is 'column' on base and small, 'row' on medium and above
+<Flex
+  direction={{ base: 'column', medium: 'row' }}
+  gap={{ base: 'small', medium: 'medium', large: 'large' }}
+>
+  <Text fontSize={{ base: 'medium', xl: 'large' }}>
+    Responsive text
+  </Text>
+</Flex>
+```
+
+You can also use an array shorthand. Values map to breakpoints in order (`base`, `small`, `medium`, `large`, `xl`, `xxl`):
+
+```tsx
+// Equivalent to { base: 'column', medium: 'row' }
+<Flex direction={['column', undefined, 'row']}>
+  ...
+</Flex>
+```
+
+<Note>
+  `undefined` in the array means "inherit the previous breakpoint's value". Only provide values at the breakpoints where you want the style to change.
+</Note>
+
+### Responsive padding and margin
+
+```tsx
+import { Card, Heading, Text } from '@aws-amplify/ui-react';
+
+<Card
+  padding={{ base: 'medium', large: 'xl' }}
+  maxWidth={{ base: '100%', medium: '640px', large: '900px' }}
+>
+  <Heading
+    level={2}
+    fontSize={{ base: 'xl', medium: 'xxl', xl: 'xxxl' }}
+  >
+    Responsive card
+  </Heading>
+  <Text lineHeight={{ base: 'medium', large: 'large' }}>
+    Content that adapts to the viewport.
+  </Text>
+</Card>
+```
+
+## `useBreakpointValue`
+
+`useBreakpointValue` resolves a breakpoint map to the current breakpoint's value. Use it when you need the active value in JavaScript rather than CSS.
+
+```tsx
+import { useBreakpointValue } from '@aws-amplify/ui-react';
+
+function ResponsiveComponent() {
+  const columns = useBreakpointValue({
+    base: 1,
+    small: 2,
+    medium: 3,
+    large: 4,
+  });
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+      }}
+    >
+      {/* items */}
+    </div>
+  );
+}
+```
+
+The hook reads the current breakpoints from the active theme (via `useTheme`) and listens to window resize events. It returns the value for the largest matching breakpoint.
+
+### With string values
+
+```tsx
+const variant = useBreakpointValue({
+  base: 'small',
+  medium: 'large',
+}) as 'small' | 'large';
+
+<Button size={variant}>Submit</Button>
+```
+
+## `useThemeBreakpoint`
+
+`useThemeBreakpoint` returns the name of the currently active breakpoint as a string.
+
+```tsx
+import { useThemeBreakpoint } from '@aws-amplify/ui-react';
+
+function DebugBreakpoint() {
+  const breakpoint = useThemeBreakpoint();
+  // 'base' | 'small' | 'medium' | 'large' | 'xl' | 'xxl'
+  return <span>Current breakpoint: {breakpoint}</span>;
+}
+```
+
+<Note>
+  `useThemeBreakpoint` is an internal API and may change between releases. Prefer `useBreakpointValue` for application code.
+</Note>
+
+## Mobile-first approach
+
+Amplify UI generates `min-width` media queries, not `max-width`. This means:
+
+- Start with styles for the smallest viewport (`base`).
+- Add overrides for progressively larger viewports.
+- Omit a breakpoint key to inherit the previous value.
+
+```tsx
+// Correct — mobile-first
+<Flex direction={{ base: 'column', medium: 'row' }}>
+
+// Avoid — requires overriding at every smaller breakpoint
+<Flex direction={{ xxl: 'column', xl: 'column', large: 'row' }}>
+```
+
+## Breakpoint overrides in themes
+
+You can also change token values at specific breakpoints using a `BreakpointOverride` in your theme's `overrides` array. This generates a `min-width` media query in the compiled CSS:
+
+```tsx
+const theme = createTheme({
+  name: 'responsive-theme',
+  overrides: [
+    {
+      breakpoint: 'medium',
+      tokens: {
+        space: {
+          medium: { value: '1.25rem' },
+          large: { value: '2rem' },
+        },
+        fontSizes: {
+          medium: { value: '1.125rem' },
+        },
+      },
+    },
+  ],
+});
+```
+
+This compiles to:
+
+```css
+@media (min-width: 768px) {
+  [data-amplify-theme="responsive-theme"] {
+    --amplify-space-medium: 1.25rem;
+    --amplify-space-large: 2rem;
+    --amplify-font-sizes-medium: 1.125rem;
+  }
+}
+```
+
+## Related pages
+
+- [Theming Overview](/theming/overview) — how the theming system works
+- [Design Tokens](/theming/design-tokens) — full token reference
+- [Dark Mode](/theming/dark-mode) — color mode overrides

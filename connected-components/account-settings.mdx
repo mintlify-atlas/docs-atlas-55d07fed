@@ -1,0 +1,223 @@
+---
+title: "Account Settings"
+description: "Components for managing user account settings including password changes and account deletion"
+keywords: ["account settings", "change password", "delete user", "aws amplify"]
+---
+
+The `AccountSettings` namespace provides pre-built components for common account management tasks. All components connect directly to your Amplify Auth backend and handle the underlying API calls.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react aws-amplify
+```
+
+## Available components
+
+<CardGroup cols={2}>
+  <Card title="ChangePassword" icon="lock">
+    Form for updating the signed-in user's password. Validates the current password and enforces the configured password policy.
+  </Card>
+  <Card title="DeleteUser" icon="trash">
+    Flow for permanently deleting the signed-in user's account. Includes a confirmation step before deletion.
+  </Card>
+</CardGroup>
+
+## Setup
+
+```tsx
+import { Amplify } from 'aws-amplify';
+import { AccountSettings } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
+
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+```
+
+<Note>
+  Both components require an authenticated user session. Render them only inside an authenticated route or wrap your application with `<Authenticator>`.
+</Note>
+
+## `ChangePassword`
+
+Renders a form with fields for the current password, new password, and confirm new password.
+
+```tsx
+import { AccountSettings } from '@aws-amplify/ui-react';
+
+function PasswordPage() {
+  function handleSuccess() {
+    console.log('Password updated successfully');
+  }
+
+  function handleError(error: Error) {
+    console.error('Password update failed:', error.message);
+  }
+
+  return (
+    <AccountSettings.ChangePassword
+      onSuccess={handleSuccess}
+      onError={handleError}
+    />
+  );
+}
+```
+
+### `ChangePassword` props
+
+<ParamField path="onSuccess" type="() => void">
+  Callback invoked after the password has been successfully updated.
+</ParamField>
+
+<ParamField path="onError" type="(error: Error) => void">
+  Callback invoked when the password update fails. Receives the error object.
+</ParamField>
+
+<ParamField path="validators" type="ValidatorOptions[]">
+  Array of custom validation rules applied to the new password field. Each validator has a `validationMode`, `validator`, and `message` property.
+</ParamField>
+
+<ParamField path="components" type="ChangePasswordComponents">
+  Override the default sub-components. Accepts `CurrentPasswordField`, `NewPasswordField`, `ConfirmPasswordField`, `SubmitButton`, and `ErrorMessage`.
+</ParamField>
+
+<ParamField path="displayText" type="ChangePasswordDisplayText">
+  Override the default display text for labels, buttons, and error messages.
+</ParamField>
+
+### Custom validators
+
+```tsx
+<AccountSettings.ChangePassword
+  validators={[
+    {
+      validationMode: 'onChange',
+      validator: (password) => /[A-Z]/.test(password),
+      message: 'Password must contain at least one uppercase letter',
+    },
+    {
+      validationMode: 'onChange',
+      validator: (password) => password.length >= 12,
+      message: 'Password must be at least 12 characters',
+    },
+  ]}
+  onSuccess={() => console.log('Password updated')}
+/>
+```
+
+### Component overrides
+
+```tsx
+import { Button, PasswordField, Alert } from '@aws-amplify/ui-react';
+
+<AccountSettings.ChangePassword
+  components={{
+    SubmitButton: (props) => (
+      <Button {...props} variation="primary" isFullWidth>
+        Update password
+      </Button>
+    ),
+    ErrorMessage: ({ children, ...props }) => (
+      <Alert {...props} variation="error" isDismissible>
+        {children}
+      </Alert>
+    ),
+  }}
+  onSuccess={() => console.log('Password updated')}
+/>
+```
+
+## `DeleteUser`
+
+Renders a button that, when clicked, shows a confirmation dialog. The user must confirm before their account is permanently deleted.
+
+```tsx
+import { AccountSettings } from '@aws-amplify/ui-react';
+
+function AccountPage() {
+  function handleSuccess() {
+    // User has been deleted — redirect to sign-in
+    window.location.href = '/';
+  }
+
+  function handleError(error: Error) {
+    console.error('Account deletion failed:', error.message);
+  }
+
+  return (
+    <AccountSettings.DeleteUser
+      onSuccess={handleSuccess}
+      onError={handleError}
+    />
+  );
+}
+```
+
+### `DeleteUser` props
+
+<ParamField path="onSuccess" type="() => void">
+  Callback invoked after the account has been successfully deleted.
+</ParamField>
+
+<ParamField path="onError" type="(error: Error) => void">
+  Callback invoked when account deletion fails. Receives the error object.
+</ParamField>
+
+<ParamField path="handleDelete" type="(user: AuthUser) => Promise<void> | void">
+  Override the default deletion handler. Use this to add custom logic (e.g., deleting user data from your database) before the Amplify account is deleted.
+</ParamField>
+
+<ParamField path="components" type="DeleteUserComponents">
+  Override the default sub-components. Accepts `DeleteButton`, `WarningView`, and `ErrorMessage`.
+</ParamField>
+
+<ParamField path="displayText" type="DeleteUserDisplayText">
+  Override the default display text for labels, buttons, and confirmation messages.
+</ParamField>
+
+### Custom delete handler
+
+```tsx
+<AccountSettings.DeleteUser
+  handleDelete={async (user) => {
+    // Delete user data from your database first
+    await fetch(`/api/users/${user.userId}`, { method: 'DELETE' });
+    // Amplify will then delete the Cognito user
+  }}
+  onSuccess={() => {
+    console.log('Account deleted');
+    window.location.href = '/';
+  }}
+/>
+```
+
+### Component overrides
+
+```tsx
+import { Button } from '@aws-amplify/ui-react';
+
+<AccountSettings.DeleteUser
+  components={{
+    DeleteButton: (props) => (
+      <Button {...props} variation="destructive" colorTheme="error">
+        Delete my account
+      </Button>
+    ),
+    WarningView: ({ onCancel, onConfirm, isDisabled }) => (
+      <div>
+        <p>This action cannot be undone. Are you sure?</p>
+        <button onClick={onCancel}>Cancel</button>
+        <button onClick={onConfirm} disabled={isDisabled}>
+          Yes, delete my account
+        </button>
+      </div>
+    ),
+  }}
+  onSuccess={() => console.log('Deleted')}
+/>
+```
+
+<Warning>
+  Account deletion is permanent and cannot be undone. Always show a clear confirmation step before calling `onConfirm`. The default `WarningView` provides this, but take care if you override it.
+</Warning>

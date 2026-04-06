@@ -1,0 +1,200 @@
+---
+title: 'Server components'
+description: 'Using Amplify UI with React Server Components and Next.js App Router'
+keywords: ['amplify', 'react', 'server components', 'next.js', 'app router', 'ssr']
+---
+
+React Server Components (RSC) let you render UI on the server. Amplify UI supports this model with a dedicated server entry point that exports only server-safe utilities — no browser APIs, no React context, no client-side state.
+
+## The server entry point
+
+Import from `@aws-amplify/ui-react/server` to access server-compatible exports:
+
+```ts
+import {
+  ThemeStyle,
+  ComponentStyle,
+  GlobalStyle,
+  createTheme,
+  defineComponentTheme,
+  createComponentClasses,
+  defaultTheme,
+  defaultDarkModeOverride,
+} from '@aws-amplify/ui-react/server';
+```
+
+These exports let you inject theme styles into server-rendered HTML without any client JavaScript.
+
+<Warning>
+  The main `@aws-amplify/ui-react` entry point — including `Authenticator`, `ThemeProvider`, hooks like `useTheme`, and all primitive components — requires browser APIs and React context. You must add `'use client'` to any component that imports from the main package.
+</Warning>
+
+## Which components require `'use client'`
+
+| Export | Entry point | Client required |
+|---|---|:---:|
+| `Authenticator` | `@aws-amplify/ui-react` | ✓ |
+| `AccountSettings` | `@aws-amplify/ui-react` | ✓ |
+| `ThemeProvider` | `@aws-amplify/ui-react` | ✓ |
+| `useTheme` | `@aws-amplify/ui-react` | ✓ |
+| `useBreakpointValue` | `@aws-amplify/ui-react` | ✓ |
+| All primitives (`Button`, `TextField`, etc.) | `@aws-amplify/ui-react` | ✓ |
+| `ThemeStyle` | `@aws-amplify/ui-react/server` | — |
+| `ComponentStyle` | `@aws-amplify/ui-react/server` | — |
+| `GlobalStyle` | `@aws-amplify/ui-react/server` | — |
+| `createTheme` | `@aws-amplify/ui-react/server` | — |
+| `defaultTheme` | `@aws-amplify/ui-react/server` | — |
+| `defaultDarkModeOverride` | `@aws-amplify/ui-react/server` | — |
+
+## Next.js App Router setup
+
+### 1. Apply theme styles in the root layout
+
+Use `ThemeStyle` in your server layout to inject CSS variables without shipping JavaScript:
+
+```tsx app/layout.tsx
+import { ThemeStyle } from '@aws-amplify/ui-react/server';
+import { createTheme } from '@aws-amplify/ui-react/server';
+import '@aws-amplify/ui-react/styles.css';
+
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      brand: {
+        primary: { 80: { value: '#0070f3' } },
+      },
+    },
+  },
+});
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <ThemeStyle theme={theme} />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### 2. Wrap interactive components in a client boundary
+
+Create a thin client wrapper for any Amplify UI component that uses React state or context:
+
+```tsx components/auth-provider.tsx
+'use client';
+
+import { Authenticator } from '@aws-amplify/ui-react';
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  return <Authenticator.Provider>{children}</Authenticator.Provider>;
+}
+```
+
+```tsx components/sign-in.tsx
+'use client';
+
+import { Authenticator } from '@aws-amplify/ui-react';
+
+export function SignIn() {
+  return (
+    <Authenticator>
+      {({ signOut, user }) => (
+        <main>
+          <p>Signed in as {user?.username}</p>
+          <button onClick={signOut}>Sign out</button>
+        </main>
+      )}
+    </Authenticator>
+  );
+}
+```
+
+### 3. Use server-safe theme utilities for per-component styles
+
+`ComponentStyle` injects scoped CSS for individual component themes defined with `defineComponentTheme`:
+
+```tsx app/layout.tsx
+import {
+  ComponentStyle,
+  createTheme,
+  defineComponentTheme,
+} from '@aws-amplify/ui-react/server';
+import '@aws-amplify/ui-react/styles.css';
+
+const buttonTheme = defineComponentTheme({
+  name: 'button',
+  theme: (tokens) => ({
+    borderRadius: tokens.radii.large,
+  }),
+});
+
+const theme = createTheme({ name: 'app-theme' }, buttonTheme);
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <ComponentStyle theme={theme} />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+## Configuring Amplify for server components
+
+Client-side Amplify configuration must happen inside a `'use client'` component. Do not call `Amplify.configure()` in a Server Component.
+
+```tsx components/amplify-provider.tsx
+'use client';
+
+import { Amplify } from 'aws-amplify';
+import outputs from '@/amplify_outputs.json';
+
+Amplify.configure(outputs, { ssr: true });
+
+export default function AmplifyProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+```
+
+```tsx app/layout.tsx
+import AmplifyProvider from '@/components/amplify-provider';
+import { ThemeStyle, defaultTheme } from '@aws-amplify/ui-react/server';
+import '@aws-amplify/ui-react/styles.css';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <ThemeStyle theme={defaultTheme} />
+      </head>
+      <body>
+        <AmplifyProvider>{children}</AmplifyProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+<Note>
+  Pass `{ ssr: true }` to `Amplify.configure()` when using Next.js App Router. This enables cookie-based session handling compatible with server-side rendering.
+</Note>
+
+## Server entry point exports reference
+
+| Export | Type | Description |
+|---|---|---|
+| `ThemeStyle` | Component | Renders a `<style>` tag with CSS variables for the given theme |
+| `ComponentStyle` | Component | Renders a `<style>` tag with scoped component theme overrides |
+| `GlobalStyle` | Component | Renders global base styles for Amplify UI |
+| `createTheme` | Function | Creates a theme object from token overrides |
+| `defineComponentTheme` | Function | Defines a typed per-component theme override |
+| `createComponentClasses` | Function | Generates CSS class names for component theming |
+| `defaultTheme` | Object | The built-in Amplify UI default theme |
+| `defaultDarkModeOverride` | Object | Token overrides for dark mode |

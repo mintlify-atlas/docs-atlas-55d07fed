@@ -1,0 +1,196 @@
+---
+title: 'Dark Mode'
+description: 'Enable and customize dark mode with defaultDarkModeOverride and the colorMode prop'
+keywords: ['dark mode', 'color mode', 'defaultDarkModeOverride', 'ThemeProvider', 'theming']
+---
+
+Amplify UI supports dark mode through color mode overrides. An override is a set of token values applied when a specific condition is met — in the case of dark mode, when the user's OS preference is dark, or when you programmatically set `colorMode="dark"` on `ThemeProvider`.
+
+## Using `defaultDarkModeOverride`
+
+The `defaultDarkModeOverride` export provides a ready-made dark palette. It flips the neutral and color scales so light shades become dark and vice versa, and reassigns the semantic `font`, `background`, `border`, `shadow`, and `overlay` tokens for dark backgrounds.
+
+```tsx
+import { createTheme, defaultDarkModeOverride } from '@aws-amplify/ui';
+import { ThemeProvider } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
+
+const theme = createTheme({
+  name: 'my-theme',
+  overrides: [defaultDarkModeOverride],
+});
+
+export default function App({ children }) {
+  return (
+    <ThemeProvider theme={theme} colorMode="system">
+      {children}
+    </ThemeProvider>
+  );
+}
+```
+
+<Note>
+  `defaultDarkModeOverride` generates two CSS blocks: one scoped to `[data-amplify-color-mode="dark"]` (for programmatic control) and one inside `@media (prefers-color-scheme: dark)` scoped to `[data-amplify-color-mode="system"]` (for OS-based control). Both are generated in a single `createTheme` call.
+</Note>
+
+## Controlling color mode
+
+<Tabs>
+  <Tab title="OS-based (recommended)">
+    Pass `colorMode="system"` to let the browser's `prefers-color-scheme` media query drive the active mode. The theme switches automatically when the user changes their OS preference — no JavaScript event listeners required.
+
+    ```tsx
+    <ThemeProvider theme={theme} colorMode="system">
+      {children}
+    </ThemeProvider>
+    ```
+
+    The generated CSS looks like:
+
+    ```css
+    @media (prefers-color-scheme: dark) {
+      [data-amplify-theme="my-theme"][data-amplify-color-mode="system"] {
+        --amplify-colors-background-primary: var(--amplify-colors-neutral-10);
+        --amplify-colors-font-primary: var(--amplify-colors-white);
+        color-scheme: dark;
+        /* ... */
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Programmatic">
+    Pass `colorMode="light"` or `colorMode="dark"` to force a specific mode regardless of OS preference. This is useful for a user-controlled toggle.
+
+    ```tsx
+    import * as React from 'react';
+    import { createTheme, defaultDarkModeOverride } from '@aws-amplify/ui';
+    import { ThemeProvider, Button } from '@aws-amplify/ui-react';
+    import type { ColorMode } from '@aws-amplify/ui-react';
+
+    const theme = createTheme({
+      name: 'my-theme',
+      overrides: [defaultDarkModeOverride],
+    });
+
+    export default function App({ children }) {
+      const [colorMode, setColorMode] = React.useState<ColorMode>('light');
+
+      return (
+        <ThemeProvider theme={theme} colorMode={colorMode}>
+          <Button
+            onClick={() =>
+              setColorMode((prev) => (prev === 'light' ? 'dark' : 'light'))
+            }
+          >
+            Toggle dark mode
+          </Button>
+          {children}
+        </ThemeProvider>
+      );
+    }
+    ```
+
+    The generated CSS targets the explicit attribute value:
+
+    ```css
+    [data-amplify-theme="my-theme"][data-amplify-color-mode="dark"] {
+      --amplify-colors-background-primary: var(--amplify-colors-neutral-10);
+      --amplify-colors-font-primary: var(--amplify-colors-white);
+      color-scheme: dark;
+      /* ... */
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## What `defaultDarkModeOverride` changes
+
+The override inverts the numeric color scales and updates the semantic tokens:
+
+| Semantic token | Light default | Dark override |
+|---|---|---|
+| `colors.font.primary` | `colors.neutral.100` | `colors.white` |
+| `colors.font.secondary` | `colors.neutral.90` | `colors.neutral.100` |
+| `colors.font.tertiary` | `colors.neutral.80` | `colors.neutral.90` |
+| `colors.font.inverse` | `colors.white` | `colors.neutral.10` |
+| `colors.background.primary` | `colors.white` | `colors.neutral.10` |
+| `colors.background.secondary` | `colors.neutral.10` | `colors.neutral.20` |
+| `colors.background.tertiary` | `colors.neutral.20` | `colors.neutral.40` |
+| `colors.border.primary` | `colors.neutral.60` | `colors.neutral.60` |
+| `colors.border.secondary` | `colors.neutral.40` | `colors.neutral.40` |
+| `colors.border.tertiary` | `colors.neutral.20` | `colors.neutral.20` |
+| `colors.shadow.primary` | `hsla(210, 50%, 10%, 0.25)` | `hsla(100, 100%, 100%, 0.25)` |
+
+Color palettes (`red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, `neutral`) are also inverted: shade `10` maps to `100`, `20` maps to `90`, `40` maps to `80`, and so on.
+
+## Customizing dark mode tokens
+
+Provide your own `colorMode: 'dark'` override to adjust specific tokens in dark mode without replacing the entire `defaultDarkModeOverride`:
+
+```tsx
+import { createTheme, defaultDarkModeOverride } from '@aws-amplify/ui';
+
+const theme = createTheme({
+  name: 'custom-dark',
+  overrides: [
+    defaultDarkModeOverride,
+    // Placed after defaultDarkModeOverride so it takes precedence
+    {
+      colorMode: 'dark',
+      tokens: {
+        colors: {
+          background: {
+            primary: { value: '#0d1117' },
+            secondary: { value: '#161b22' },
+          },
+          font: {
+            primary: { value: '#e6edf3' },
+          },
+        },
+      },
+    },
+  ],
+});
+```
+
+<Tip>
+  Order matters. Later overrides in the `overrides` array generate CSS that appears later in the stylesheet, so they win the cascade. Always place custom overrides after `defaultDarkModeOverride`.
+</Tip>
+
+## Custom dark mode without `defaultDarkModeOverride`
+
+You can write a dark mode override from scratch for complete control:
+
+```tsx
+import { createTheme } from '@aws-amplify/ui';
+
+const theme = createTheme({
+  name: 'brand-dark',
+  overrides: [
+    {
+      colorMode: 'dark',
+      tokens: {
+        colors: {
+          background: {
+            primary: { value: '#1a0a2e' },
+            secondary: { value: '#2d1a4a' },
+          },
+          font: {
+            primary: { value: '#f0e6ff' },
+            secondary: { value: '#c8a8ff' },
+          },
+          border: {
+            primary: { value: '#6a3da8' },
+          },
+        },
+      },
+    },
+  ],
+});
+```
+
+## Related pages
+
+- [Theming Overview](/theming/overview) — how the theming system works
+- [Design Tokens](/theming/design-tokens) — full token reference
+- [Responsive Design](/theming/responsive) — breakpoints and responsive prop values

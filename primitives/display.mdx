@@ -1,0 +1,646 @@
+---
+title: "Display primitives"
+description: "Badge, Card, Heading, Text, Image, Link, Icon, Tabs, Collection, Table, Pagination, Menu, Breadcrumbs, Avatar, Rating, and HighlightMatch."
+keywords: ["display", "badge", "card", "heading", "text", "image", "table", "tabs", "collection", "pagination", "menu", "amplify ui"]
+---
+
+Display primitives render content, data, and navigation. They are composable — most work as standalone elements and also nest inside layout primitives like `Flex` and `Grid`.
+
+```tsx
+import {
+  Badge,
+  Card,
+  Heading,
+  Text,
+  Link,
+  Image,
+  Icon,
+  Tabs,
+  Collection,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Pagination,
+  Menu,
+  MenuItem,
+  MenuButton,
+  Breadcrumbs,
+  Avatar,
+  Rating,
+  HighlightMatch,
+} from '@aws-amplify/ui-react';
+```
+
+---
+
+## Badge
+
+`Badge` is a small inline status label. Use `variation` for semantic meaning and `size` to adjust the font size.
+
+```tsx
+<Flex gap="small" alignItems="center">
+  <Badge>Default</Badge>
+  <Badge variation="info">Info</Badge>
+  <Badge variation="success">Success</Badge>
+  <Badge variation="warning">Warning</Badge>
+  <Badge variation="error">Error</Badge>
+</Flex>
+```
+
+### Props
+
+<ParamField path="variation" type="'info' | 'success' | 'warning' | 'error'">
+  Applies a semantic color to the badge.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts the font size of the badge.
+</ParamField>
+
+---
+
+## Card
+
+`Card` is a contained surface that groups related content. It accepts all `View` style props for padding, border radius, and shadow customization.
+
+<CodeGroup>
+
+```tsx Basic card
+<Card padding="large">
+  <Heading level={4}>Plan name</Heading>
+  <Text>Short description of what this plan includes.</Text>
+  <Button variation="primary" marginTop="medium">Get started</Button>
+</Card>
+```
+
+```tsx Card grid
+<Grid templateColumns="repeat(3, 1fr)" gap="medium">
+  {plans.map((plan) => (
+    <Card key={plan.id} padding="large" borderRadius="medium">
+      <Heading level={4}>{plan.name}</Heading>
+      <Text variation="secondary">{plan.price}</Text>
+    </Card>
+  ))}
+</Grid>
+```
+
+</CodeGroup>
+
+---
+
+## Heading
+
+`Heading` renders semantic heading elements `h1` through `h6`. Use `level` to choose the element.
+
+```tsx
+<Flex direction="column" gap="small">
+  <Heading level={1}>Page title</Heading>
+  <Heading level={2}>Section title</Heading>
+  <Heading level={3}>Subsection title</Heading>
+  <Heading level={4}>Card heading</Heading>
+</Flex>
+```
+
+### Props
+
+<ParamField path="level" type="1 | 2 | 3 | 4 | 5 | 6" default="2">
+  Determines the heading element rendered: `h1` through `h6`.
+</ParamField>
+
+---
+
+## Text
+
+`Text` renders a `<p>` element with optional semantic variation.
+
+```tsx
+<Flex direction="column" gap="small">
+  <Text>Default paragraph text.</Text>
+  <Text variation="secondary">Secondary — muted gray.</Text>
+  <Text variation="tertiary">Tertiary — further muted.</Text>
+  <Text variation="error">Error — indicates a problem.</Text>
+  <Text variation="warning">Warning — needs attention.</Text>
+  <Text variation="info">Info — helpful context.</Text>
+  <Text variation="success">Success — action completed.</Text>
+  <Text isTruncated>This text will truncate with an ellipsis when it overflows.</Text>
+</Flex>
+```
+
+### Props
+
+<ParamField path="variation" type="'primary' | 'secondary' | 'tertiary' | 'error' | 'warning' | 'info' | 'success'">
+  Semantic color variation.
+</ParamField>
+
+<ParamField path="isTruncated" type="boolean" default="false">
+  Truncates overflowing text with an ellipsis.
+</ParamField>
+
+---
+
+## Link
+
+`Link` renders an `<a>` element. Use `isExternal` to add `rel="noopener noreferrer"` and open in a new tab.
+
+```tsx
+<Flex direction="column" gap="small">
+  <Link href="/docs/getting-started">Internal link</Link>
+  <Link href="https://aws.amazon.com" isExternal>
+    External link (opens in new tab)
+  </Link>
+</Flex>
+```
+
+### Props
+
+<ParamField path="href" type="string">
+  The URL the link navigates to.
+</ParamField>
+
+<ParamField path="isExternal" type="boolean" default="false">
+  When `true`, adds `target="_blank"` and `rel="noopener noreferrer"`.
+</ParamField>
+
+---
+
+## Image
+
+`Image` renders a responsive `<img>`. The `alt` and `src` props are required.
+
+```tsx
+<Image
+  src="https://example.com/photo.jpg"
+  alt="A mountain landscape at sunrise"
+  width="100%"
+  maxWidth="640px"
+  borderRadius="medium"
+  objectFit="cover"
+/>
+```
+
+### Props
+
+<ParamField path="src" type="string" required>
+  The image URL.
+</ParamField>
+
+<ParamField path="alt" type="string" required>
+  Alternative text description. Required for accessibility.
+</ParamField>
+
+<ParamField path="srcSet" type="string">
+  A set of source candidates for responsive images.
+</ParamField>
+
+<ParamField path="sizes" type="string">
+  Media conditions for selecting a candidate from `srcSet`.
+</ParamField>
+
+<ParamField path="objectFit" type="string | ResponsiveObject">
+  Maps to CSS `object-fit`. Controls how the image fills its container.
+</ParamField>
+
+<ParamField path="objectPosition" type="string | ResponsiveObject">
+  Maps to CSS `object-position`. Controls image alignment within its container.
+</ParamField>
+
+---
+
+## Tabs
+
+`Tabs` renders a tabbed panel interface.
+
+```tsx
+<Tabs
+  defaultValue="overview"
+  items={[
+    {
+      label: 'Overview',
+      value: 'overview',
+      content: <Text>Overview content here.</Text>,
+    },
+    {
+      label: 'Details',
+      value: 'details',
+      content: <Text>Detailed information here.</Text>,
+    },
+    {
+      label: 'History',
+      value: 'history',
+      content: <Text>Activity history here.</Text>,
+    },
+  ]}
+/>
+```
+
+<Note>
+  `Tabs` in Amplify UI uses Radix UI under the hood and is fully keyboard navigable. Use arrow keys to move between tabs, and `Enter` or `Space` to activate a tab.
+</Note>
+
+---
+
+## Collection
+
+`Collection` iterates over an array of items and renders each one using a render function. It supports optional pagination and search filtering.
+
+<CodeGroup>
+
+```tsx Basic list
+const users = [
+  { id: '1', name: 'Ana García', role: 'Admin' },
+  { id: '2', name: 'James Lee', role: 'Member' },
+  { id: '3', name: 'Priya Patel', role: 'Viewer' },
+];
+
+<Collection
+  type="list"
+  items={users}
+  gap="small"
+>
+  {(user) => (
+    <Card key={user.id} padding="medium">
+      <Flex alignItems="center" gap="small">
+        <Avatar name={user.name} />
+        <Flex direction="column">
+          <Text fontWeight="bold">{user.name}</Text>
+          <Text variation="secondary">{user.role}</Text>
+        </Flex>
+      </Flex>
+    </Card>
+  )}
+</Collection>
+```
+
+```tsx Grid with search and pagination
+<Collection
+  type="grid"
+  items={products}
+  templateColumns="repeat(auto-fill, minmax(240px, 1fr))"
+  gap="medium"
+  isSearchable
+  searchPlaceholder="Search products…"
+  isPaginated
+  itemsPerPage={12}
+>
+  {(product) => (
+    <Card key={product.id} padding="medium">
+      <Image src={product.imageUrl} alt={product.name} width="100%" />
+      <Heading level={5}>{product.name}</Heading>
+      <Text>{product.price}</Text>
+    </Card>
+  )}
+</Collection>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="items" type="Array<Item>" required>
+  The data array to iterate over.
+</ParamField>
+
+<ParamField path="type" type="'list' | 'grid' | 'table'" default="list">
+  Layout type of the collection wrapper. `list` uses `Flex`, `grid` uses `Grid`, and `table` uses `Table`.
+</ParamField>
+
+<ParamField path="isPaginated" type="boolean" default="false">
+  Enables pagination controls below the collection.
+</ParamField>
+
+<ParamField path="itemsPerPage" type="number">
+  Number of items per page when `isPaginated` is `true`.
+</ParamField>
+
+<ParamField path="isSearchable" type="boolean" default="false">
+  Adds a search field above the collection that filters items.
+</ParamField>
+
+<ParamField path="searchFilter" type="(item: unknown, searchText: string) => boolean">
+  Custom filter function. By default, filters by JSON-stringified item text.
+</ParamField>
+
+<ParamField path="searchPlaceholder" type="string">
+  Placeholder text for the search input.
+</ParamField>
+
+<ParamField path="searchNoResultsFound" type="React.ReactNode">
+  Content shown when no items match the search query.
+</ParamField>
+
+---
+
+## Table
+
+`Table` renders a semantic HTML table. Use the `TableHead`, `TableBody`, `TableFoot`, `TableRow`, and `TableCell` sub-components to build the structure.
+
+<CodeGroup>
+
+```tsx Basic table
+const orders = [
+  { id: 'ORD-001', customer: 'Ana García', amount: '$120.00', status: 'Shipped' },
+  { id: 'ORD-002', customer: 'James Lee', amount: '$45.50', status: 'Processing' },
+  { id: 'ORD-003', customer: 'Priya Patel', amount: '$89.99', status: 'Delivered' },
+];
+
+<Table caption="Recent orders" highlightOnHover>
+  <TableHead>
+    <TableRow>
+      <TableCell as="th">Order ID</TableCell>
+      <TableCell as="th">Customer</TableCell>
+      <TableCell as="th">Amount</TableCell>
+      <TableCell as="th">Status</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {orders.map((order) => (
+      <TableRow key={order.id}>
+        <TableCell>{order.id}</TableCell>
+        <TableCell>{order.customer}</TableCell>
+        <TableCell>{order.amount}</TableCell>
+        <TableCell>
+          <Badge variation={order.status === 'Delivered' ? 'success' : 'info'}>
+            {order.status}
+          </Badge>
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
+```
+
+```tsx Striped bordered table
+<Table variation="striped" size="small">
+  <TableHead>
+    <TableRow>
+      <TableCell as="th">Name</TableCell>
+      <TableCell as="th">Value</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>Region</TableCell>
+      <TableCell>us-east-1</TableCell>
+    </TableRow>
+    <TableRow>
+      <TableCell>Environment</TableCell>
+      <TableCell>production</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>
+```
+
+</CodeGroup>
+
+### Table props
+
+<ParamField path="caption" type="React.ReactNode">
+  Accessible title for the table, rendered as a `<caption>` element.
+</ParamField>
+
+<ParamField path="highlightOnHover" type="boolean" default="false">
+  Highlights the hovered table row.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts font size and cell padding.
+</ParamField>
+
+<ParamField path="variation" type="'bordered' | 'striped'">
+  `bordered` adds borders to all cells. `striped` alternates row background colors.
+</ParamField>
+
+---
+
+## Pagination
+
+`Pagination` renders accessible page navigation with previous/next buttons and page number links.
+
+```tsx
+import { useState } from 'react';
+
+function PaginatedList() {
+  const [page, setPage] = useState(1);
+
+  return (
+    <>
+      {/* ...render current page items... */}
+      <Pagination
+        currentPage={page}
+        totalPages={24}
+        siblingCount={1}
+        onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+        onNext={() => setPage((p) => Math.min(24, p + 1))}
+        onChange={(newPage) => newPage && setPage(newPage)}
+      />
+    </>
+  );
+}
+```
+
+### Props
+
+<ParamField path="totalPages" type="number" required>
+  Total number of pages.
+</ParamField>
+
+<ParamField path="currentPage" type="number">
+  Index of the currently active page (1-based).
+</ParamField>
+
+<ParamField path="siblingCount" type="number">
+  Number of page buttons shown on each side of the current page.
+</ParamField>
+
+<ParamField path="hasMorePages" type="boolean" default="false">
+  When `true`, enables the next button even when `currentPage` equals `totalPages`. Use when the total page count is unknown.
+</ParamField>
+
+<ParamField path="onNext" type="() => void">
+  Callback when the next button is clicked.
+</ParamField>
+
+<ParamField path="onPrevious" type="() => void">
+  Callback when the previous button is clicked.
+</ParamField>
+
+<ParamField path="onChange" type="(newPageIndex?: number, prevPageIndex?: number) => void">
+  Callback when any page button is clicked.
+</ParamField>
+
+---
+
+## Menu
+
+`Menu` is a dropdown with a trigger button and a list of `MenuItem` actions.
+
+```tsx
+<Menu menuAlign="end">
+  <MenuItem onClick={() => console.log('Edit')}>Edit</MenuItem>
+  <MenuItem onClick={() => console.log('Duplicate')}>Duplicate</MenuItem>
+  <MenuItem isDisabled>Archive</MenuItem>
+  <MenuItem
+    variation="destructive"
+    onClick={() => console.log('Delete')}
+  >
+    Delete
+  </MenuItem>
+</Menu>
+```
+
+Use a custom trigger:
+
+```tsx
+<Menu trigger={<Button size="small">Actions</Button>}>
+  <MenuItem>Edit</MenuItem>
+  <MenuItem>Share</MenuItem>
+</Menu>
+```
+
+### Props
+
+<ParamField path="trigger" type="React.ReactNode">
+  Custom trigger element. Must forward refs to a DOM element. Defaults to `MenuButton` with a menu icon.
+</ParamField>
+
+<ParamField path="menuAlign" type="'start' | 'center' | 'end'" default="start">
+  Alignment of the dropdown relative to the trigger.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts the size of the trigger button and menu items.
+</ParamField>
+
+<ParamField path="isOpen" type="boolean">
+  Controlled open state. Pair with `onOpenChange`.
+</ParamField>
+
+<ParamField path="onOpenChange" type="(isOpen: boolean) => void">
+  Callback when the menu opens or closes.
+</ParamField>
+
+---
+
+## Breadcrumbs
+
+`Breadcrumbs` renders a navigation trail showing the current page's location in the site hierarchy.
+
+```tsx
+<Breadcrumbs
+  items={[
+    { href: '/', label: 'Home' },
+    { href: '/products', label: 'Products' },
+    { href: '/products/clothing', label: 'Clothing' },
+    { label: 'T-shirts' },
+  ]}
+/>
+```
+
+---
+
+## Avatar
+
+`Avatar` displays a user avatar. It shows an image when a `src` is provided, falls back to initials derived from `name`, or shows a generic icon.
+
+```tsx
+<Flex gap="small" alignItems="center">
+  <Avatar src="https://example.com/avatar.jpg" alt="Ana García" />
+  <Avatar name="James Lee" />
+  <Avatar />
+</Flex>
+```
+
+---
+
+## Rating
+
+`Rating` renders a read-only star rating display.
+
+```tsx
+<Rating
+  value={4.5}
+  maxValue={5}
+  fillColor="hsl(43, 100%, 50%)"
+/>
+```
+
+---
+
+## HighlightMatch
+
+`HighlightMatch` wraps a string and highlights the portion that matches a query. Useful inside search result lists.
+
+```tsx
+<HighlightMatch query="ampl">
+  AWS Amplify UI components
+</HighlightMatch>
+```
+
+The matched text is wrapped in a `<mark>` element, which you can style with CSS.
+
+---
+
+## Accordion
+
+`Accordion` renders expandable/collapsible content panels. Use the `items` array for a simple single-file setup, or compose with sub-components for full control.
+
+<CodeGroup>
+
+```tsx items array
+<Accordion
+  items={[
+    { value: 'item1', trigger: 'What is Amplify UI?', content: 'A collection of accessible, themeable UI components.' },
+    { value: 'item2', trigger: 'Is it free?', content: 'Yes — Amplify UI is open source under the Apache 2.0 license.' },
+    { value: 'item3', trigger: 'Which frameworks are supported?', content: 'React, Angular, Vue, and React Native.' },
+  ]}
+/>
+```
+
+```tsx composed
+<Accordion.Container allowMultiple>
+  <Accordion.Item value="first">
+    <Accordion.Trigger>
+      First section
+      <Accordion.Icon />
+    </Accordion.Trigger>
+    <Accordion.Content>Content for the first section.</Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item value="second">
+    <Accordion.Trigger>
+      Second section
+      <Accordion.Icon />
+    </Accordion.Trigger>
+    <Accordion.Content>Content for the second section.</Accordion.Content>
+  </Accordion.Item>
+</Accordion.Container>
+```
+
+</CodeGroup>
+
+### Key props
+
+<ParamField path="items" type="Array<{ value: string; trigger: ReactNode; content: ReactNode }>">
+  Array-based shorthand for building the accordion without composing sub-components.
+</ParamField>
+
+<ParamField path="allowMultiple" type="boolean" default="false">
+  When `true`, multiple items can be expanded at the same time.
+</ParamField>
+
+<ParamField path="preventCollapse" type="boolean" default="false">
+  When `true`, prevents the last expanded item from being collapsed.
+</ParamField>
+
+<ParamField path="value" type="string[]">
+  Controlled list of expanded item values.
+</ParamField>
+
+<ParamField path="defaultValue" type="string[]">
+  Initial list of expanded item values (uncontrolled).
+</ParamField>
+
+<ParamField path="onValueChange" type="(value?: string[]) => void">
+  Callback fired when the expanded items change.
+</ParamField>

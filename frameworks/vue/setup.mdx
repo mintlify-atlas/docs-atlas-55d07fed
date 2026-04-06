@@ -1,0 +1,174 @@
+---
+title: 'Vue setup'
+description: 'Configure Amplify UI for your Vue 3 application'
+keywords: ['amplify', 'vue', 'setup', 'plugin', 'authenticator', 'configuration']
+---
+
+This guide walks through adding `@aws-amplify/ui-vue` to a Vue 3 application. You can register components globally using the Vue plugin, or import them individually per SFC.
+
+## Per-component import (recommended)
+
+Import and use components directly in each Single File Component. No global registration required.
+
+<Steps>
+  <Step title="Install packages">
+    ```bash
+    npm install @aws-amplify/ui-vue aws-amplify
+    ```
+  </Step>
+
+  <Step title="Configure Amplify">
+    Initialize Amplify at the top level of your app before mounting:
+
+    ```typescript main.ts
+    import { createApp } from 'vue';
+    import { Amplify } from 'aws-amplify';
+    import outputs from '../amplify_outputs.json';
+    import App from './App.vue';
+
+    Amplify.configure(outputs);
+
+    createApp(App).mount('#app');
+    ```
+  </Step>
+
+  <Step title="Import the stylesheet and component">
+    Add the stylesheet import and use `<Authenticator>` in your SFC:
+
+    ```vue App.vue
+    <script setup lang="ts">
+    import { Authenticator } from '@aws-amplify/ui-vue';
+    import '@aws-amplify/ui-vue/styles.css';
+    </script>
+
+    <template>
+      <Authenticator>
+        <template v-slot="{ user, signOut }">
+          <main>
+            <h1>Hello, {{ user?.username }}</h1>
+            <button @click="signOut">Sign out</button>
+          </main>
+        </template>
+      </Authenticator>
+    </template>
+    ```
+  </Step>
+</Steps>
+
+## Global plugin registration
+
+Register all Amplify UI components globally so they are available throughout your application without per-file imports.
+
+<Steps>
+  <Step title="Install packages">
+    ```bash
+    npm install @aws-amplify/ui-vue aws-amplify
+    ```
+  </Step>
+
+  <Step title="Register the plugin and configure Amplify">
+    ```typescript main.ts
+    import { createApp } from 'vue';
+    import { Amplify } from 'aws-amplify';
+    import AmplifyVue from '@aws-amplify/ui-vue';
+    import '@aws-amplify/ui-vue/styles.css';
+    import outputs from '../amplify_outputs.json';
+    import App from './App.vue';
+
+    Amplify.configure(outputs);
+
+    createApp(App).use(AmplifyVue).mount('#app');
+    ```
+  </Step>
+
+  <Step title="Use components in any template">
+    After global registration, components like `Authenticator` are available in any template without importing:
+
+    ```vue App.vue
+    <template>
+      <Authenticator>
+        <template v-slot="{ user, signOut }">
+          <h1>Hello, {{ user?.username }}</h1>
+          <button @click="signOut">Sign out</button>
+        </template>
+      </Authenticator>
+    </template>
+    ```
+  </Step>
+</Steps>
+
+## Vite configuration
+
+If you use Vite, no extra configuration is needed — `@aws-amplify/ui-vue` ships as an ES module and works with Vite out of the box.
+
+<Note>
+  If you see errors related to CommonJS dependencies during the Vite build, add `aws-amplify` to the `optimizeDeps.include` array in `vite.config.ts`.
+</Note>
+
+```typescript vite.config.ts
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+  plugins: [vue()],
+  optimizeDeps: {
+    include: ['aws-amplify'],
+  },
+});
+```
+
+## TypeScript
+
+`@aws-amplify/ui-vue` ships with TypeScript declarations. No additional type packages are needed.
+
+Ensure your `tsconfig.json` includes Vue support:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"]
+  }
+}
+```
+
+## Nuxt
+
+When using Nuxt 3, configure Amplify inside a plugin so it runs client-side only:
+
+```typescript plugins/amplify.client.ts
+import { Amplify } from 'aws-amplify';
+import outputs from '../amplify_outputs.json';
+
+Amplify.configure(outputs);
+```
+
+Then import `@aws-amplify/ui-vue` components directly in your pages or components, or register them in a Nuxt module.
+
+<Warning>
+  The `Authenticator` component relies on browser APIs and must not be rendered on the server. Wrap it in a `<ClientOnly>` tag in Nuxt templates.
+</Warning>
+
+```vue pages/auth.vue
+<template>
+  <ClientOnly>
+    <Authenticator>
+      <template v-slot="{ user, signOut }">
+        <p>Signed in as {{ user?.username }}</p>
+        <button @click="signOut">Sign out</button>
+      </template>
+    </Authenticator>
+  </ClientOnly>
+</template>
+
+<script setup lang="ts">
+import { Authenticator } from '@aws-amplify/ui-vue';
+import '@aws-amplify/ui-vue/styles.css';
+</script>
+```
+
+## Related
+
+- [Vue overview](/frameworks/vue/overview) — What's included in the Vue package
+- [Authenticator component](/connected-components/authenticator) — Full Authenticator reference and slot customization

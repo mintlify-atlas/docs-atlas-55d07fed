@@ -1,0 +1,429 @@
+---
+title: 'AI Conversation'
+description: 'Add AI-powered chat interfaces backed by AWS Bedrock using the AIConversation component'
+keywords: ['ai', 'conversation', 'chatbot', 'bedrock', 'amplify', 'react']
+---
+
+<Note>
+  `AIConversation` requires an Amplify Gen 2 backend with an AI conversation route configured. See the [Amplify AI docs](https://docs.amplify.aws/react/ai/set-up-ai/) for backend setup instructions.
+</Note>
+
+The `AIConversation` component renders a fully functional chat interface connected to an AWS Bedrock-backed AI route defined in your Amplify Gen 2 backend. It handles message streaming, optimistic UI updates, file attachments, and real-time responses out of the box.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react-ai
+```
+
+Also import the component styles:
+
+```tsx app.tsx
+import '@aws-amplify/ui-react-ai/ai-conversation-styles.css';
+```
+
+## Setup
+
+<Steps>
+  <Step title="Configure your Amplify backend">
+    Define a conversation route in your Amplify Gen 2 schema. The route name you give here is what you pass to `useAIConversation`.
+
+    ```typescript amplify/data/resource.ts
+    import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
+
+    const schema = a.schema({
+      chat: a.conversation({
+        aiModel: a.ai.model('Claude 3.5 Haiku'),
+        systemPrompt: 'You are a helpful assistant.',
+      })
+        .authorization((allow) => allow.owner()),
+    });
+
+    export type Schema = typeof schema;
+    export default defineData({ schema });
+    ```
+  </Step>
+
+  <Step title="Create the AI hooks">
+    Use `createAIHooks` to generate typed hooks bound to your Amplify data client. Do this once and export the hooks for use across your app.
+
+    ```tsx lib/ai.ts
+    import { createAIHooks } from '@aws-amplify/ui-react-ai';
+    import { generateClient } from 'aws-amplify/data';
+    import type { Schema } from '../amplify/data/resource';
+
+    const client = generateClient<Schema>({ authMode: 'userPool' });
+
+    export const { useAIConversation, useAIGeneration } = createAIHooks(client);
+    ```
+  </Step>
+
+  <Step title="Render the component">
+    Pass the `messages` array and `handleSendMessage` function returned by `useAIConversation` directly to `AIConversation`.
+
+    ```tsx ChatPage.tsx
+    import { AIConversation } from '@aws-amplify/ui-react-ai';
+    import { useAIConversation } from '../lib/ai';
+
+    export default function ChatPage() {
+      const [
+        { data: { messages }, isLoading },
+        handleSendMessage,
+      ] = useAIConversation('chat');
+
+      return (
+        <AIConversation
+          messages={messages}
+          handleSendMessage={handleSendMessage}
+          isLoading={isLoading}
+        />
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+## Props
+
+### Required props
+
+<ParamField path="messages" type="ConversationMessage[]" required>
+  The array of conversation messages to display. Obtain this from the `data.messages` field returned by `useAIConversation`.
+</ParamField>
+
+<ParamField path="handleSendMessage" type="(input: SendMesageParameters) => void" required>
+  Callback invoked when the user submits a message. Obtain this from the second element returned by `useAIConversation`.
+</ParamField>
+
+### Optional props
+
+<ParamField path="isLoading" type="boolean" default="false">
+  When `true`, displays a loading indicator while the conversation is being initialized or a response is being generated.
+</ParamField>
+
+<ParamField path="avatars" type="Avatars">
+  Custom avatar configuration for the user and AI participants. Each entry accepts a `username` string and an `avatar` React node.
+
+  ```tsx
+  // Avatars shape
+  interface Avatars {
+    user?: { username?: string; avatar?: React.ReactNode };
+    ai?: { username?: string; avatar?: React.ReactNode };
+  }
+  ```
+</ParamField>
+
+<ParamField path="welcomeMessage" type="React.ReactNode">
+  Content displayed in the conversation area before any messages are sent.
+</ParamField>
+
+<ParamField path="suggestedPrompts" type="SuggestedPrompt[]">
+  An array of prompt suggestions shown to the user before the first message. Each entry has an `inputText` string and an optional `component` for custom rendering.
+
+  ```tsx
+  // SuggestedPrompt shape
+  interface SuggestedPrompt {
+    inputText: string;
+    component?: React.ReactNode;
+  }
+  ```
+</ParamField>
+
+<ParamField path="actions" type="CustomAction[]">
+  Custom actions rendered in the message actions bar. Each action has a `handler` function that receives the message and an optional `component` for the button UI.
+
+  ```tsx
+  // CustomAction shape
+  interface CustomAction {
+    handler: (message: ConversationMessage) => void;
+    component?: React.ReactNode;
+  }
+  ```
+</ParamField>
+
+<ParamField path="responseComponents" type="ResponseComponents">
+  A map of named React components the AI can invoke in its responses as structured tool output. Each entry defines the `component`, a `description` for the model, and a `props` schema.
+</ParamField>
+
+<ParamField path="FallbackResponseComponent" type="React.ComponentType<any>">
+  Component rendered when a response component name returned by the model does not match any entry in `responseComponents`.
+</ParamField>
+
+<ParamField path="variant" type="'bubble' | 'default'" default="'default'">
+  Visual style for message display. `'bubble'` renders chat-style rounded bubbles; `'default'` renders flat message rows.
+</ParamField>
+
+<ParamField path="allowAttachments" type="boolean" default="false">
+  When `true`, enables a file attachment button in the message input form.
+</ParamField>
+
+<ParamField path="maxAttachments" type="number">
+  Maximum number of files a user can attach per message. Only applies when `allowAttachments` is `true`.
+</ParamField>
+
+<ParamField path="maxAttachmentSize" type="number">
+  Maximum size in bytes for each attached file.
+</ParamField>
+
+<ParamField path="messageRenderer" type="MessageRenderer">
+  Override the default rendering for text or image content blocks within messages.
+
+  ```tsx
+  // MessageRenderer shape
+  interface MessageRenderer {
+    text?: (input: { text: string }) => React.JSX.Element;
+    image?: (input: { image: ImageContentBlock }) => React.JSX.Element;
+  }
+  ```
+</ParamField>
+
+<ParamField path="aiContext" type="() => object">
+  A function that returns additional context sent to the model with each message. Use this to inject user-specific or session-specific metadata.
+</ParamField>
+
+<ParamField path="displayText" type="DisplayTextTemplate<AIConversationDisplayText>">
+  Overrides for the UI strings rendered by the component, such as timestamp formatting and attachment error messages.
+</ParamField>
+
+## Resuming a conversation
+
+Pass a conversation `id` to `useAIConversation` to resume an existing conversation. The hook fetches all previous messages and re-establishes the streaming subscription.
+
+```tsx ChatPage.tsx
+import { useParams } from 'react-router-dom';
+import { AIConversation } from '@aws-amplify/ui-react-ai';
+import { useAIConversation } from '../lib/ai';
+
+export default function ChatPage() {
+  const { conversationId } = useParams();
+
+  const [
+    { data: { messages }, isLoading },
+    handleSendMessage,
+  ] = useAIConversation('chat', {
+    id: conversationId,
+    onInitialize: (conversation) => {
+      // e.g. update the URL with the new conversation ID
+      window.history.replaceState(null, '', `/chat/${conversation.id}`);
+    },
+  });
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+      isLoading={isLoading}
+    />
+  );
+}
+```
+
+## Customizing avatars
+
+```tsx ChatPage.tsx
+import { AIConversation } from '@aws-amplify/ui-react-ai';
+import { useAIConversation } from '../lib/ai';
+
+export default function ChatPage() {
+  const [{ data: { messages } }, handleSendMessage] = useAIConversation('chat');
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+      avatars={{
+        user: {
+          username: 'You',
+          avatar: <img src="/avatar-user.png" alt="User avatar" />,
+        },
+        ai: {
+          username: 'Aria',
+          avatar: <img src="/avatar-ai.png" alt="AI avatar" />,
+        },
+      }}
+    />
+  );
+}
+```
+
+## Suggested prompts
+
+Display prompt suggestions before the first message is sent. Clicking a suggestion pre-fills the input with `inputText`.
+
+```tsx ChatPage.tsx
+import { AIConversation } from '@aws-amplify/ui-react-ai';
+import { useAIConversation } from '../lib/ai';
+
+const prompts = [
+  { inputText: 'Summarize the latest news' },
+  { inputText: 'Help me write a cover letter' },
+  {
+    inputText: 'Explain quantum computing',
+    component: <span>Explain quantum computing 🔬</span>,
+  },
+];
+
+export default function ChatPage() {
+  const [{ data: { messages } }, handleSendMessage] = useAIConversation('chat');
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+      suggestedPrompts={prompts}
+      welcomeMessage={<p>How can I help you today?</p>}
+    />
+  );
+}
+```
+
+## Response components
+
+Response components let the AI return structured UI alongside text. Define a map of components, each with a props schema the model uses to populate values.
+
+```tsx ChatPage.tsx
+import { AIConversation } from '@aws-amplify/ui-react-ai';
+import { useAIConversation } from '../lib/ai';
+
+function WeatherCard({ city, temperature, condition }: {
+  city: string;
+  temperature: number;
+  condition: string;
+}) {
+  return (
+    <div className="weather-card">
+      <h3>{city}</h3>
+      <p>{temperature}°F — {condition}</p>
+    </div>
+  );
+}
+
+export default function ChatPage() {
+  const [{ data: { messages } }, handleSendMessage] = useAIConversation('chat');
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+      responseComponents={{
+        WeatherCard: {
+          component: WeatherCard,
+          description: 'Display current weather for a city',
+          props: {
+            city: { type: 'string', required: true, description: 'City name' },
+            temperature: { type: 'number', required: true, description: 'Temperature in Fahrenheit' },
+            condition: { type: 'string', required: true, description: 'Weather condition' },
+          },
+        },
+      }}
+    />
+  );
+}
+```
+
+## File attachments
+
+Enable file attachments by setting `allowAttachments`. Users can attach images and documents to their messages.
+
+```tsx ChatPage.tsx
+import { AIConversation } from '@aws-amplify/ui-react-ai';
+import { useAIConversation } from '../lib/ai';
+
+export default function ChatPage() {
+  const [{ data: { messages } }, handleSendMessage] = useAIConversation('chat');
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+      allowAttachments
+      maxAttachments={5}
+      maxAttachmentSize={10 * 1024 * 1024} // 10 MB
+    />
+  );
+}
+```
+
+## Factory pattern with `createAIConversation`
+
+Use `createAIConversation` to produce a pre-configured `AIConversation` component with static options baked in. This is useful when the same conversation UI is used in multiple places with the same configuration.
+
+```tsx lib/chat.ts
+import { createAIConversation } from '@aws-amplify/ui-react-ai';
+
+export const { AIConversation } = createAIConversation({
+  variant: 'bubble',
+  allowAttachments: true,
+  suggestedPrompts: [
+    { inputText: 'What can you help me with?' },
+  ],
+});
+```
+
+```tsx ChatPage.tsx
+import { useAIConversation } from '../lib/ai';
+import { AIConversation } from '../lib/chat';
+
+export default function ChatPage() {
+  const [{ data: { messages } }, handleSendMessage] = useAIConversation('chat');
+
+  return (
+    <AIConversation
+      messages={messages}
+      handleSendMessage={handleSendMessage}
+    />
+  );
+}
+```
+
+## `useAIConversation` hook
+
+The `useAIConversation` hook manages conversation lifecycle, message streaming, and state. It returns a tuple of `[state, handleSendMessage]`.
+
+```tsx
+const [state, handleSendMessage] = useAIConversation(routeName, input?);
+```
+
+### Parameters
+
+<ParamField path="routeName" type="string" required>
+  The name of the conversation route as defined in your Amplify Gen 2 schema.
+</ParamField>
+
+<ParamField path="input.id" type="string">
+  ID of an existing conversation to resume. When omitted, a new conversation is created.
+</ParamField>
+
+<ParamField path="input.onInitialize" type="(conversation: Conversation) => void">
+  Called once after the conversation is created or retrieved. Use this to persist the conversation ID.
+</ParamField>
+
+<ParamField path="input.onMessage" type="(message: ConversationMessage) => void">
+  Called each time a complete AI message is received.
+</ParamField>
+
+### Return value
+
+<ResponseField name="state.data.messages" type="ConversationMessage[]">
+  All messages in the current conversation, including optimistically added user messages and streaming AI responses.
+</ResponseField>
+
+<ResponseField name="state.data.conversation" type="Conversation | undefined">
+  The underlying Amplify conversation object. Available after the hook initializes.
+</ResponseField>
+
+<ResponseField name="state.isLoading" type="boolean">
+  `true` while the conversation is being created or while existing messages are being fetched.
+</ResponseField>
+
+<ResponseField name="state.hasError" type="boolean">
+  `true` if the last operation resulted in an error.
+</ResponseField>
+
+<ResponseField name="state.errors" type="GraphQLFormattedError[] | undefined">
+  Array of GraphQL errors returned by the backend, if any.
+</ResponseField>
+
+<ResponseField name="handleSendMessage" type="(input: SendMesageParameters) => void">
+  Sends a message. Optimistically appends the user message and a loading AI message before the response arrives.
+</ResponseField>

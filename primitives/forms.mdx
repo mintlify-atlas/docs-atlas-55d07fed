@@ -1,0 +1,787 @@
+---
+title: "Form primitives"
+description: "Button, TextField, SelectField, CheckboxField, RadioGroupField, SliderField, SwitchField, and more for building forms in Amplify UI."
+keywords: ["forms", "button", "textfield", "selectfield", "checkbox", "radio", "slider", "switch", "amplify ui"]
+---
+
+Form primitives are accessible, label-connected inputs. Every field primitive requires a `label` prop. Labels are visible by default and can be hidden with `labelHidden` (the label text is still provided to screen readers).
+
+```tsx
+import {
+  Button,
+  TextField,
+  TextAreaField,
+  PasswordField,
+  SearchField,
+  SelectField,
+  CheckboxField,
+  RadioGroupField,
+  SliderField,
+  SwitchField,
+  StepperField,
+  PhoneNumberField,
+  Flex,
+} from '@aws-amplify/ui-react';
+```
+
+---
+
+## Button
+
+`Button` is the primary interaction element. Use `variation` to communicate intent and `size` to adjust visual weight.
+
+<CodeGroup>
+
+```tsx Variations
+<Flex gap="small" alignItems="center">
+  <Button variation="primary">Primary</Button>
+  <Button>Default</Button>
+  <Button variation="link">Link</Button>
+  <Button variation="warning">Warning</Button>
+  <Button variation="destructive">Destructive</Button>
+</Flex>
+```
+
+```tsx Sizes
+<Flex gap="small" alignItems="center">
+  <Button size="small" variation="primary">Small</Button>
+  <Button variation="primary">Default</Button>
+  <Button size="large" variation="primary">Large</Button>
+</Flex>
+```
+
+```tsx States
+<Flex gap="small">
+  <Button isLoading loadingText="Saving…" variation="primary">
+    Save
+  </Button>
+  <Button isDisabled>Disabled</Button>
+  <Button isFullWidth variation="primary">Full width</Button>
+</Flex>
+```
+
+```tsx Color themes
+<Flex gap="small">
+  <Button colorTheme="success" variation="primary">Success</Button>
+  <Button colorTheme="error" variation="primary">Error</Button>
+  <Button colorTheme="warning" variation="primary">Warning</Button>
+  <Button colorTheme="info" variation="primary">Info</Button>
+  <Button colorTheme="overlay">Overlay</Button>
+</Flex>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="variation" type="'primary' | 'link' | 'menu' | 'warning' | 'destructive'">
+  Visual weight of the button. `primary` is the highest-emphasis style.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts font size, padding, and height. Default (no value) sits between `small` and `large`.
+</ParamField>
+
+<ParamField path="colorTheme" type="'info' | 'error' | 'warning' | 'success' | 'overlay'">
+  Applies a semantic color scheme to the button.
+</ParamField>
+
+<ParamField path="isDisabled" type="boolean" default="false">
+  Prevents interaction and applies a disabled visual state.
+</ParamField>
+
+<ParamField path="isLoading" type="boolean" default="false">
+  Shows a spinner inside the button.
+</ParamField>
+
+<ParamField path="loadingText" type="string">
+  Text shown alongside the spinner when `isLoading` is `true`. If omitted, only the spinner is shown.
+</ParamField>
+
+<ParamField path="isFullWidth" type="boolean" default="false">
+  Makes the button stretch to fill its container.
+</ParamField>
+
+<ParamField path="type" type="'button' | 'reset' | 'submit'" default="button">
+  Sets the HTML `type` attribute for use inside `<form>` elements.
+</ParamField>
+
+<ParamField path="onClick" type="React.MouseEventHandler<HTMLButtonElement>">
+  Click event handler.
+</ParamField>
+
+---
+
+## TextField
+
+`TextField` is a single-line text input with a label, optional descriptive text, and error state support.
+
+<CodeGroup>
+
+```tsx Uncontrolled
+<TextField
+  label="Username"
+  placeholder="Enter a username"
+  descriptiveText="Must be at least 4 characters."
+/>
+```
+
+```tsx Controlled
+import { useState } from 'react';
+
+function EmailField() {
+  const [email, setEmail] = useState('');
+
+  return (
+    <TextField
+      label="Email address"
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder="you@example.com"
+    />
+  );
+}
+```
+
+```tsx Error state
+<TextField
+  label="Email address"
+  type="email"
+  hasError
+  errorMessage="Enter a valid email address."
+  defaultValue="not-an-email"
+/>
+```
+
+```tsx Quiet variation
+<TextField
+  label="Search"
+  placeholder="Search…"
+  variation="quiet"
+  labelHidden
+/>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="label" type="React.ReactNode" required>
+  Visible label text. Connected to the input via `htmlFor`/`id` for accessibility.
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  Placeholder text shown when the field is empty.
+</ParamField>
+
+<ParamField path="descriptiveText" type="React.ReactNode">
+  Helper text shown below the input. Use for instructions (e.g. password requirements).
+</ParamField>
+
+<ParamField path="errorMessage" type="React.ReactNode">
+  Error text shown below the input when `hasError` is `true`.
+</ParamField>
+
+<ParamField path="hasError" type="boolean" default="false">
+  Marks the field as invalid and shows `errorMessage`.
+</ParamField>
+
+<ParamField path="labelHidden" type="boolean" default="false">
+  Hides the label visually. The label is still present in the DOM for accessibility.
+</ParamField>
+
+<ParamField path="type" type="React.HTMLInputTypeAttribute" default="text">
+  HTML `type` attribute of the underlying `<input>`.
+</ParamField>
+
+<ParamField path="value" type="string | number | string[]">
+  Controlled value. When provided, pair with `onChange`.
+</ParamField>
+
+<ParamField path="defaultValue" type="string | number | string[]">
+  Initial value for an uncontrolled field.
+</ParamField>
+
+<ParamField path="isDisabled" type="boolean" default="false">
+  Disables the input.
+</ParamField>
+
+<ParamField path="isReadOnly" type="boolean" default="false">
+  Makes the input read-only.
+</ParamField>
+
+<ParamField path="isRequired" type="boolean">
+  Marks the field as required.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts font size, padding, and height.
+</ParamField>
+
+<ParamField path="variation" type="'quiet'">
+  Removes the border and shows a bottom-only underline style.
+</ParamField>
+
+---
+
+## TextAreaField
+
+`TextAreaField` behaves like `TextField` but renders a `<textarea>` for multi-line input.
+
+```tsx
+<TextAreaField
+  label="Bio"
+  placeholder="Tell us about yourself"
+  rows={4}
+  descriptiveText="Maximum 200 characters."
+/>
+```
+
+`TextAreaField` accepts the same `label`, `descriptiveText`, `errorMessage`, `hasError`, `isDisabled`, `isReadOnly`, and `isRequired` props as `TextField`.
+
+---
+
+## PasswordField
+
+`PasswordField` is a `TextField` preconfigured with `type="password"` and a built-in show/hide toggle button.
+
+```tsx
+<PasswordField
+  label="Password"
+  descriptiveText="Minimum 8 characters, including one number."
+/>
+```
+
+---
+
+## SearchField
+
+`SearchField` provides a text input with a built-in clear button and submit button.
+
+```tsx
+import { useState } from 'react';
+
+function Search() {
+  const [query, setQuery] = useState('');
+
+  return (
+    <SearchField
+      label="Search"
+      placeholder="Search products…"
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      onSubmit={(value) => console.log('Searching for:', value)}
+      onClear={() => setQuery('')}
+    />
+  );
+}
+```
+
+---
+
+## SelectField
+
+`SelectField` renders a native `<select>` with a label. Pass options as an array of strings or as `<option>` children.
+
+<CodeGroup>
+
+```tsx Options array
+<SelectField
+  label="Country"
+  placeholder="Select a country"
+  options={['Australia', 'Canada', 'Germany', 'Japan', 'United States']}
+/>
+```
+
+```tsx Option children
+<SelectField label="Role" defaultValue="member">
+  <option value="admin">Admin</option>
+  <option value="member">Member</option>
+  <option value="viewer">Viewer</option>
+</SelectField>
+```
+
+```tsx Controlled
+import { useState } from 'react';
+
+function RoleSelect() {
+  const [role, setRole] = useState('member');
+
+  return (
+    <SelectField
+      label="Role"
+      value={role}
+      onChange={(e) => setRole(e.target.value)}
+    >
+      <option value="admin">Admin</option>
+      <option value="member">Member</option>
+      <option value="viewer">Viewer</option>
+    </SelectField>
+  );
+}
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="label" type="React.ReactNode" required>
+  Visible label text.
+</ParamField>
+
+<ParamField path="options" type="string[]">
+  Shorthand for rendering a list of `<option>` elements from an array.
+</ParamField>
+
+<ParamField path="placeholder" type="string">
+  A disabled first option shown when no value is selected.
+</ParamField>
+
+<ParamField path="value" type="string">
+  Controlled value. Pair with `onChange`.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  Initial value for an uncontrolled `SelectField`.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts height and font size.
+</ParamField>
+
+<ParamField path="variation" type="'quiet'">
+  Removes the border box and shows an underline style.
+</ParamField>
+
+<ParamField path="isDisabled" type="boolean" default="false">
+  Disables the select.
+</ParamField>
+
+<ParamField path="isRequired" type="boolean">
+  Marks the field as required.
+</ParamField>
+
+<ParamField path="hasError" type="boolean" default="false">
+  Marks the field as invalid.
+</ParamField>
+
+<ParamField path="errorMessage" type="React.ReactNode">
+  Error text shown when `hasError` is `true`.
+</ParamField>
+
+---
+
+## CheckboxField
+
+`CheckboxField` renders a single checkbox with an associated label.
+
+```tsx
+<CheckboxField
+  label="I agree to the terms of service"
+  name="terms"
+  value="agree"
+/>
+```
+
+For a controlled checkbox:
+
+```tsx
+import { useState } from 'react';
+
+function NewsletterCheckbox() {
+  const [subscribed, setSubscribed] = useState(false);
+
+  return (
+    <CheckboxField
+      label="Subscribe to newsletter"
+      name="newsletter"
+      value="subscribed"
+      checked={subscribed}
+      onChange={(e) => setSubscribed(e.target.checked)}
+    />
+  );
+}
+```
+
+---
+
+## RadioGroupField
+
+`RadioGroupField` wraps a group of `Radio` buttons under a shared `name` and `legend`.
+
+```tsx
+<RadioGroupField
+  legend="Preferred contact method"
+  name="contact"
+  defaultValue="email"
+>
+  <Radio value="email">Email</Radio>
+  <Radio value="phone">Phone</Radio>
+  <Radio value="text">Text message</Radio>
+</RadioGroupField>
+```
+
+For a controlled group:
+
+```tsx
+import { useState } from 'react';
+
+function ContactMethodField() {
+  const [method, setMethod] = useState('email');
+
+  return (
+    <RadioGroupField
+      legend="Preferred contact method"
+      name="contact"
+      value={method}
+      onChange={(e) => setMethod(e.target.value)}
+    >
+      <Radio value="email">Email</Radio>
+      <Radio value="phone">Phone</Radio>
+    </RadioGroupField>
+  );
+}
+```
+
+<ParamField path="name" type="string" required>
+  The `name` attribute shared by all radio inputs in the group.
+</ParamField>
+
+<ParamField path="value" type="string">
+  Controlled selected value.
+</ParamField>
+
+<ParamField path="defaultValue" type="string">
+  Initial selected value for uncontrolled usage.
+</ParamField>
+
+<ParamField path="labelPosition" type="'start' | 'end' | 'top' | 'bottom'" default="start">
+  Position of the label relative to the radio button.
+</ParamField>
+
+---
+
+## SliderField
+
+`SliderField` renders a range slider with a numeric value display.
+
+```tsx
+import { useState } from 'react';
+
+function VolumeSlider() {
+  const [volume, setVolume] = useState(50);
+
+  return (
+    <SliderField
+      label="Volume"
+      min={0}
+      max={100}
+      step={1}
+      value={volume}
+      onChange={setVolume}
+    />
+  );
+}
+```
+
+### Props
+
+<ParamField path="label" type="React.ReactNode" required>
+  Visible label text.
+</ParamField>
+
+<ParamField path="min" type="number">
+  Minimum value.
+</ParamField>
+
+<ParamField path="max" type="number">
+  Maximum value.
+</ParamField>
+
+<ParamField path="step" type="number">
+  Increment between selectable values.
+</ParamField>
+
+<ParamField path="value" type="number">
+  Controlled value. Pair with `onChange`.
+</ParamField>
+
+<ParamField path="defaultValue" type="number">
+  Initial value for uncontrolled usage.
+</ParamField>
+
+<ParamField path="onChange" type="(value: number) => void">
+  Called when the value changes.
+</ParamField>
+
+<ParamField path="isValueHidden" type="boolean" default="false">
+  Hides the numeric value displayed next to the label.
+</ParamField>
+
+<ParamField path="orientation" type="'horizontal' | 'vertical'" default="horizontal">
+  Changes the slider orientation.
+</ParamField>
+
+---
+
+## SwitchField
+
+`SwitchField` renders a toggle switch. Use `isChecked` and `onChange` for controlled usage, or `defaultChecked` for uncontrolled.
+
+```tsx
+import { useState } from 'react';
+
+function DarkModeToggle() {
+  const [enabled, setEnabled] = useState(false);
+
+  return (
+    <SwitchField
+      label="Dark mode"
+      isChecked={enabled}
+      onChange={(e) => setEnabled(e.target.checked)}
+    />
+  );
+}
+```
+
+### Props
+
+<ParamField path="label" type="React.ReactNode" required>
+  Visible label text.
+</ParamField>
+
+<ParamField path="isChecked" type="boolean">
+  Controlled checked state.
+</ParamField>
+
+<ParamField path="defaultChecked" type="boolean">
+  Initial checked state for uncontrolled usage.
+</ParamField>
+
+<ParamField path="isDisabled" type="boolean" default="false">
+  Disables the switch.
+</ParamField>
+
+<ParamField path="isLabelHidden" type="boolean" default="false">
+  Hides the label visually while keeping it accessible.
+</ParamField>
+
+<ParamField path="labelPosition" type="'start' | 'end' | 'top' | 'bottom'">
+  Position of the label relative to the switch.
+</ParamField>
+
+<ParamField path="size" type="'small' | 'large'">
+  Adjusts the size of the switch.
+</ParamField>
+
+---
+
+## StepperField
+
+`StepperField` is a numeric input with increment and decrement buttons.
+
+```tsx
+import { useState } from 'react';
+
+function QuantityField() {
+  const [qty, setQty] = useState(1);
+
+  return (
+    <StepperField
+      label="Quantity"
+      min={1}
+      max={99}
+      step={1}
+      value={qty}
+      onStepChange={setQty}
+    />
+  );
+}
+```
+
+<ParamField path="min" type="number">
+  Minimum allowed value.
+</ParamField>
+
+<ParamField path="max" type="number">
+  Maximum allowed value.
+</ParamField>
+
+<ParamField path="step" type="number">
+  Amount to increment or decrement per click.
+</ParamField>
+
+<ParamField path="value" type="number">
+  Controlled value.
+</ParamField>
+
+<ParamField path="defaultValue" type="number">
+  Initial value for uncontrolled usage.
+</ParamField>
+
+<ParamField path="onStepChange" type="(value: number) => void">
+  Called with the new value after each step.
+</ParamField>
+
+---
+
+## Complete form example
+
+```tsx
+import { useState } from 'react';
+import {
+  Flex,
+  TextField,
+  PasswordField,
+  SelectField,
+  CheckboxField,
+  Button,
+  Heading,
+} from '@aws-amplify/ui-react';
+
+export function SignUpForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('member');
+  const [agreed, setAgreed] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    console.log({ email, password, role, agreed });
+  }
+
+  return (
+    <Flex
+      as="form"
+      direction="column"
+      gap="medium"
+      maxWidth="480px"
+      onSubmit={handleSubmit}
+    >
+      <Heading level={2}>Create an account</Heading>
+
+      <TextField
+        label="Email address"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        isRequired
+      />
+
+      <PasswordField
+        label="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        descriptiveText="Minimum 8 characters."
+        isRequired
+      />
+
+      <SelectField
+        label="Role"
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+      >
+        <option value="admin">Admin</option>
+        <option value="member">Member</option>
+        <option value="viewer">Viewer</option>
+      </SelectField>
+
+      <CheckboxField
+        label="I agree to the terms of service"
+        name="terms"
+        value="agree"
+        checked={agreed}
+        onChange={(e) => setAgreed(e.target.checked)}
+      />
+
+      <Button type="submit" variation="primary" isDisabled={!agreed}>
+        Create account
+      </Button>
+    </Flex>
+  );
+}
+```
+
+---
+
+## ButtonGroup
+
+`ButtonGroup` visually connects a set of buttons into a single segmented control. It accepts all `Flex` props and passes `size` and `variation` to its children.
+
+```tsx
+import { ButtonGroup, Button } from '@aws-amplify/ui-react';
+
+<ButtonGroup variation="primary" size="small">
+  <Button>Bold</Button>
+  <Button>Italic</Button>
+  <Button>Underline</Button>
+</ButtonGroup>
+```
+
+---
+
+## ToggleButton and ToggleButtonGroup
+
+`ToggleButton` is a pressable button that maintains an on/off state. Use `ToggleButtonGroup` to group mutually exclusive or multi-select toggle buttons.
+
+<CodeGroup>
+
+```tsx ToggleButton (standalone)
+import { ToggleButton } from '@aws-amplify/ui-react';
+
+function AlignButton() {
+  const [isPressed, setIsPressed] = React.useState(false);
+
+  return (
+    <ToggleButton
+      isPressed={isPressed}
+      onChange={() => setIsPressed((prev) => !prev)}
+    >
+      Bold
+    </ToggleButton>
+  );
+}
+```
+
+```tsx ToggleButtonGroup (exclusive)
+import { ToggleButton, ToggleButtonGroup } from '@aws-amplify/ui-react';
+
+function AlignmentControl() {
+  const [value, setValue] = React.useState('left');
+
+  return (
+    <ToggleButtonGroup
+      value={value}
+      isExclusive
+      isSelectionRequired
+      onChange={(v) => setValue(v as string)}
+    >
+      <ToggleButton value="left">Left</ToggleButton>
+      <ToggleButton value="center">Center</ToggleButton>
+      <ToggleButton value="right">Right</ToggleButton>
+    </ToggleButtonGroup>
+  );
+}
+```
+
+</CodeGroup>
+
+### ToggleButtonGroup props
+
+<ParamField path="value" type="string | string[]" required>
+  The currently selected value(s). Pass a single string when using `isExclusive`, or an array for multi-select.
+</ParamField>
+
+<ParamField path="onChange" type="(value: string | (string | undefined)[] | undefined) => void" required>
+  Callback fired when the selection changes.
+</ParamField>
+
+<ParamField path="isExclusive" type="boolean" default="false">
+  When `true`, only one button can be pressed at a time.
+</ParamField>
+
+<ParamField path="isSelectionRequired" type="boolean" default="false">
+  When `true`, at least one button must always be selected.
+</ParamField>

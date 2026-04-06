@@ -1,0 +1,120 @@
+---
+title: "Primitives overview"
+description: "50+ accessible, themeable base components for building your UI with @aws-amplify/ui-react."
+keywords: ["primitives", "components", "ui", "amplify", "react"]
+---
+
+Primitives are low-level, general-purpose UI components. Unlike [connected components](/connected-components/authenticator) — which wire directly into AWS services and handle auth or storage flows — primitives have no cloud dependencies. They are building blocks you compose to create any interface.
+
+Every primitive is:
+
+- **Accessible by default** — follows WAI-ARIA patterns with keyboard navigation and screen-reader support.
+- **Themeable** — styled with [design tokens](/theming/design-tokens) that you can override globally or per-component.
+- **Polymorphic** — accepts an `as` prop to change the underlying HTML element while keeping all style and event props.
+- **Style-prop-aware** — accepts layout and spacing props (`padding`, `margin`, `width`, `gap`, etc.) directly, without writing CSS.
+
+## Import pattern
+
+All primitives are exported from `@aws-amplify/ui-react`. Import only what you need.
+
+```tsx
+import { Button, TextField, Flex, Badge } from '@aws-amplify/ui-react';
+```
+
+## Common props
+
+Every primitive extends the base props below in addition to its own specific props.
+
+| Prop        | Type                  | Description                                     |
+| ----------- | --------------------- | ----------------------------------------------- |
+| `as`        | `React.ElementType`   | Change the rendered HTML element.               |
+| `className` | `string`              | Append a CSS class to the component.            |
+| `style`     | `React.CSSProperties` | Inline styles via a React CSSProperties object. |
+| `id`        | `string`              | HTML `id` attribute.                            |
+| `testId`    | `string`              | Sets `data-testid` for testing.                 |
+| `isDisabled`| `boolean`             | Disables the element.                           |
+
+Style shorthand props like `padding`, `margin`, `width`, `gap`, `color`, `backgroundColor`, and more are also available on every primitive and map directly to their CSS equivalents.
+
+## Categories
+
+<CardGroup cols={2}>
+  <Card title="Layout" icon="layout-grid" href="/primitives/layout">
+    `View`, `Flex`, `Grid`, `ScrollView`, `Divider` — structure pages and regions.
+  </Card>
+  <Card title="Forms" icon="text-cursor-input" href="/primitives/forms">
+    `Button`, `TextField`, `SelectField`, `CheckboxField`, `RadioGroupField`, `SliderField`, `SwitchField`, and more.
+  </Card>
+  <Card title="Display" icon="monitor" href="/primitives/display">
+    `Badge`, `Card`, `Heading`, `Text`, `Image`, `Link`, `Tabs`, `Table`, `Collection`, `Pagination`, `Menu`, and more.
+  </Card>
+  <Card title="Feedback" icon="bell" href="/primitives/feedback">
+    `Alert`, `Loader`, `Message`, `Placeholder`, `VisuallyHidden` — communicate state to users.
+  </Card>
+</CardGroup>
+
+## Full primitive list
+
+<AccordionGroup>
+  <Accordion title="Layout">
+    | Primitive | Default element | Description |
+    | --------- | --------------- | ----------- |
+    | `View` | `div` | Base container. All other primitives extend `View`. |
+    | `Flex` | `div` | Flexbox layout container. |
+    | `Grid` | `div` | CSS Grid layout container. |
+    | `ScrollView` | `div` | Scrollable container. |
+    | `Divider` | `hr` | Horizontal or vertical rule. |
+  </Accordion>
+  <Accordion title="Forms">
+    | Primitive | Default element | Description |
+    | --------- | --------------- | ----------- |
+    | `Button` | `button` | Clickable action trigger. |
+    | `ButtonGroup` | `div` | Groups buttons into a visually connected row. |
+    | `TextField` | `input` | Single-line text input with label. |
+    | `TextAreaField` | `textarea` | Multi-line text input. |
+    | `PasswordField` | `input` | Password input with show/hide toggle. |
+    | `SearchField` | `input` | Text input with clear and submit actions. |
+    | `Autocomplete` | `div` | Combobox input with suggestion dropdown. |
+    | `SelectField` | `select` | Dropdown selection. |
+    | `CheckboxField` | `input` | Single checkbox with label. |
+    | `RadioGroupField` | `fieldset` | Group of mutually exclusive radio buttons. |
+    | `SliderField` | `span` | Range slider input. |
+    | `SwitchField` | `div` | Toggle switch. |
+    | `StepperField` | `input` | Numeric input with increment/decrement buttons. |
+    | `PhoneNumberField` | `input` | Phone number input with country-code selector. |
+    | `ToggleButton` | `button` | A pressable toggle button. |
+    | `ToggleButtonGroup` | `div` | Group of mutually exclusive or multi-select toggle buttons. |
+    | `DropZone` | `div` | Drag-and-drop file target. |
+    | `Fieldset` | `fieldset` | Groups related fields with a legend. |
+  </Accordion>
+  <Accordion title="Display">
+    | Primitive | Default element | Description |
+    | --------- | --------------- | ----------- |
+    | `Badge` | `span` | Small status indicator label. |
+    | `Card` | `div` | Contained content surface. |
+    | `Heading` | `h2` | Semantic section headings h1–h6. |
+    | `Text` | `p` | Styled text block. |
+    | `Link` | `a` | Anchor with `isExternal` helper. |
+    | `Image` | `img` | Responsive image. |
+    | `Icon` | `svg` | SVG icon wrapper. |
+    | `Accordion` | `div` | Expandable/collapsible content sections. |
+    | `Tabs` | `div` | Tabbed panel switcher. |
+    | `Collection` | `div` | Map over data arrays with optional search and pagination. |
+    | `Table` | `table` | Semantic HTML table. |
+    | `Pagination` | `nav` | Page navigation control. |
+    | `Menu` | `div` | Dropdown menu with `MenuButton` and `MenuItem`. |
+    | `Breadcrumbs` | `nav` | Hierarchical location trail. |
+    | `Avatar` | `div` | User avatar with image or initials fallback. |
+    | `Rating` | `div` | Star rating display. |
+    | `HighlightMatch` | `span` | Highlights matching text within a string. |
+  </Accordion>
+  <Accordion title="Feedback">
+    | Primitive | Default element | Description |
+    | --------- | --------------- | ----------- |
+    | `Alert` | `div` | Inline status message. |
+    | `Loader` | `svg` | Circular or linear loading indicator. |
+    | `Message` | `div` | Richer notification banner with variations. |
+    | `Placeholder` | `div` | Loading skeleton for content areas. |
+    | `VisuallyHidden` | `span` | Visually hidden but accessible to screen readers. |
+  </Accordion>
+</AccordionGroup>

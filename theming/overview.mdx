@@ -1,0 +1,166 @@
+---
+title: 'Theming Overview'
+description: 'Customize Amplify UI with themes, design tokens, and CSS variables'
+keywords: ['theming', 'createTheme', 'ThemeProvider', 'CSS variables', 'design tokens']
+---
+
+Amplify UI's theming system lets you customize the look and feel of all components through a structured set of design tokens. Tokens are defined in a `Theme` object, compiled to CSS custom properties (CSS variables), and applied via `ThemeProvider`.
+
+## How it works
+
+<Steps>
+  <Step title="Create a theme">
+    Call `createTheme` with your token overrides. The function deep-merges your values with the default theme and returns a compiled `WebTheme` that includes the generated CSS text.
+  </Step>
+  <Step title="Wrap your app with ThemeProvider">
+    Pass the theme to `ThemeProvider`. It renders a `<div data-amplify-theme="...">` wrapper and injects the CSS into the page via a `<style>` tag.
+  </Step>
+  <Step title="Components pick up the CSS variables automatically">
+    Every Amplify UI component reads from the same CSS custom properties, so your token overrides apply everywhere without any extra configuration.
+  </Step>
+</Steps>
+
+## Minimal example
+
+```tsx
+import { createTheme, defaultDarkModeOverride } from '@aws-amplify/ui';
+import { ThemeProvider, Button } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
+
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      brand: {
+        primary: {
+          80: { value: '#6846b8' },
+          90: { value: '#4a2d9c' },
+          100: { value: '#31197a' },
+        },
+      },
+      font: {
+        primary: { value: '{colors.neutral.100.value}' },
+      },
+    },
+    radii: {
+      medium: { value: '0.25rem' },
+    },
+  },
+});
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme} colorMode="system">
+      <Button variation="primary">Styled button</Button>
+    </ThemeProvider>
+  );
+}
+```
+
+## CSS variables
+
+`createTheme` compiles tokens to CSS custom properties scoped to the theme container. The property name is derived from the token path:
+
+| Token path | CSS variable |
+|---|---|
+| `colors.font.primary` | `--amplify-colors-font-primary` |
+| `colors.background.primary` | `--amplify-colors-background-primary` |
+| `space.medium` | `--amplify-space-medium` |
+| `fontSizes.large` | `--amplify-font-sizes-large` |
+| `radii.medium` | `--amplify-radii-medium` |
+| `shadows.medium` | `--amplify-shadows-medium` |
+
+The CSS is scoped to a `data-amplify-theme` attribute so multiple themes can coexist on the same page:
+
+```css
+[data-amplify-theme="my-theme"] {
+  --amplify-colors-font-primary: #1a1a2e;
+  --amplify-space-medium: 1rem;
+  /* ... */
+}
+```
+
+You can read these variables in your own CSS to stay in sync with the active theme:
+
+```css
+.my-card {
+  background-color: var(--amplify-colors-background-primary);
+  border-radius: var(--amplify-radii-medium);
+  padding: var(--amplify-space-medium);
+}
+```
+
+## The `primaryColor` shortcut
+
+Instead of setting every shade manually, pass a `primaryColor` string that matches one of the built-in color palettes (`red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, `neutral`). All shades from that palette are aliased to `colors.primary.*`:
+
+```tsx
+const theme = createTheme({
+  name: 'blue-theme',
+  primaryColor: 'blue',
+});
+```
+
+The same shortcut is available for `secondaryColor`, which maps to `colors.secondary.*`.
+
+## Component-level overrides with `defineComponentTheme`
+
+Use `defineComponentTheme` to scope token overrides to a single component. The function returns a component theme object that you pass to `createTheme` via the `components` array.
+
+```tsx
+import { createTheme, defineComponentTheme } from '@aws-amplify/ui';
+import { ThemeProvider, Button } from '@aws-amplify/ui-react';
+
+const buttonTheme = defineComponentTheme({
+  name: 'button',
+  theme: (tokens) => ({
+    borderRadius: tokens.radii.xxxl,
+    paddingInline: tokens.space.xl,
+    fontSize: tokens.fontSizes.small,
+  }),
+});
+
+const theme = createTheme({
+  name: 'pill-buttons',
+  components: [buttonTheme],
+});
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <Button variation="primary">Pill button</Button>
+    </ThemeProvider>
+  );
+}
+```
+
+## Targeting specific elements with `className`
+
+`defineComponentTheme` returns a `className` helper that generates scoped class names. Apply them to specific elements to limit a component theme's reach:
+
+```tsx
+const alertTheme = defineComponentTheme({
+  name: 'alert',
+  theme: (tokens) => ({
+    padding: tokens.space.large,
+  }),
+});
+
+// Apply only to this instance
+<Alert className={alertTheme.className()}>...</Alert>
+```
+
+## ThemeProvider props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `theme` | `Theme \| WebTheme` | — | Custom theme created with `createTheme`. |
+| `colorMode` | `'system' \| 'light' \| 'dark'` | — | Forces a color mode or delegates to OS preference when `'system'`. |
+| `direction` | `'ltr' \| 'rtl'` | `'ltr'` | Text direction. |
+| `nonce` | `string` | — | CSP nonce attached to the injected `<style>` tag. |
+
+## Related pages
+
+- [Design Tokens](/theming/design-tokens) — full token reference for all categories
+- [Dark Mode](/theming/dark-mode) — enabling and customizing dark mode
+- [Responsive Design](/theming/responsive) — breakpoints and responsive prop values

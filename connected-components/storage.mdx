@@ -1,0 +1,314 @@
+---
+title: "Storage components"
+description: "Upload, browse, and display files from AWS S3 with StorageManager, StorageBrowser, FileUploader, and StorageImage"
+keywords: ["storage", "S3", "file upload", "StorageManager", "StorageBrowser", "FileUploader", "StorageImage", "aws amplify"]
+---
+
+Amplify UI provides four components for interacting with files stored in Amazon S3. Each targets a different use case — from simple single-file uploads to a full file browser experience.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react-storage @aws-amplify/ui-react aws-amplify
+```
+
+```tsx
+import { Amplify } from 'aws-amplify';
+import '@aws-amplify/ui-react/styles.css';
+
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+```
+
+## Components overview
+
+<CardGroup cols={2}>
+  <Card title="StorageManager" icon="cloud-arrow-up">
+    Multi-file upload with drag-and-drop, progress tracking, and resumable uploads.
+  </Card>
+  <Card title="StorageBrowser" icon="folder-open">
+    Full file browser UI for listing, navigating, uploading, copying, and deleting files across S3 locations.
+  </Card>
+  <Card title="FileUploader" icon="file-arrow-up">
+    Lightweight file upload component. Similar to StorageManager but without the managed state wrapper.
+  </Card>
+  <Card title="StorageImage" icon="image">
+    Renders an image stored in S3, handling the signed URL retrieval automatically.
+  </Card>
+</CardGroup>
+
+---
+
+## StorageManager
+
+`StorageManager` handles multi-file uploads with built-in drag-and-drop, progress indicators, and optional resumable upload support.
+
+```tsx
+import { StorageManager } from '@aws-amplify/ui-react-storage';
+
+function UploadPage() {
+  return (
+    <StorageManager
+      acceptedFileTypes={['image/*', '.pdf']}
+      path="public/"
+      maxFileCount={5}
+      isResumable
+      onUploadSuccess={({ key }) => console.log('Uploaded:', key)}
+      onUploadError={(error, { key }) => console.error(key, error)}
+    />
+  );
+}
+```
+
+### `StorageManager` props
+
+<ParamField path="path" type="string | PathCallback" required>
+  The S3 key prefix for uploaded files. Provide a string (e.g., `"public/"`) or a callback `({ identityId }) => string` for identity-scoped paths.
+</ParamField>
+
+<ParamField path="maxFileCount" type="number" required>
+  Maximum number of files allowed per upload batch.
+</ParamField>
+
+<ParamField path="acceptedFileTypes" type="string[]">
+  Array of accepted MIME types or file extensions (e.g., `["image/*", ".pdf"]`). Omit or set to `["*"]` to allow all file types.
+</ParamField>
+
+<ParamField path="isResumable" type="boolean" default="false">
+  Enables pause and resume functionality for large file uploads.
+</ParamField>
+
+<ParamField path="autoUpload" type="boolean" default="true">
+  When `false`, files are staged locally and the upload begins only when the user clicks the upload button.
+</ParamField>
+
+<ParamField path="maxFileSize" type="number">
+  Maximum allowed file size in bytes.
+</ParamField>
+
+<ParamField path="bucket" type="string | BucketInfo">
+  Target S3 bucket. Accepts the friendly name assigned in your Amplify backend or a `{ bucketName, region }` object for explicit targeting.
+</ParamField>
+
+<ParamField path="showThumbnails" type="boolean" default="true">
+  Show image preview thumbnails for image files in the file list.
+</ParamField>
+
+<ParamField path="processFile" type="ProcessFile">
+  Async function called before each upload. Use it to rename files, add metadata, or transform file contents. Signature: `({ file, key }) => Promise<{ file, key }>`.
+</ParamField>
+
+<ParamField path="defaultFiles" type="DefaultFile[]">
+  Array of `{ key: string }` objects representing files already uploaded. They appear in the file list on initial render.
+</ParamField>
+
+<ParamField path="onUploadStart" type="(event: { key?: string }) => void">
+  Called when a file upload begins.
+</ParamField>
+
+<ParamField path="onUploadSuccess" type="(event: { key?: string }) => void">
+  Called when a file uploads successfully.
+</ParamField>
+
+<ParamField path="onUploadError" type="(error: string, file: { key: string }) => void">
+  Called when a file upload fails.
+</ParamField>
+
+<ParamField path="onFileRemove" type="(file: { key: string }) => void">
+  Called when the user removes a file from the list.
+</ParamField>
+
+<ParamField path="components" type="object">
+  Override UI sub-components: `Container`, `DropZone`, `FileList`, `FilePicker`, `FileListHeader`, `FileListFooter`.
+</ParamField>
+
+<ParamField path="displayText" type="FileUploaderDisplayText">
+  Override default button labels and status messages.
+</ParamField>
+
+<ParamField path="useAccelerateEndpoint" type="boolean">
+  Route uploads through the S3 Transfer Acceleration endpoint.
+</ParamField>
+
+### Identity-scoped paths
+
+```tsx
+<StorageManager
+  path={({ identityId }) => `private/${identityId}/uploads/`}
+  maxFileCount={10}
+/>
+```
+
+### File processing
+
+```tsx
+<StorageManager
+  path="public/"
+  maxFileCount={5}
+  processFile={async ({ file, key }) => {
+    // Rename with a timestamp prefix
+    return {
+      file,
+      key: `${Date.now()}-${key}`,
+    };
+  }}
+/>
+```
+
+---
+
+## StorageBrowser
+
+`StorageBrowser` provides a full-featured file browser with location listing, navigation, upload, download, copy, and delete operations. It works with Amplify's access grant system.
+
+```tsx
+import { StorageBrowser } from '@aws-amplify/ui-react-storage';
+import '@aws-amplify/ui-react-storage/styles.css';
+
+function BrowserPage() {
+  return <StorageBrowser />;
+}
+```
+
+<Note>
+  `StorageBrowser` automatically connects to your Amplify Auth session and uses access grants to determine which S3 locations the signed-in user can access. No additional configuration is required when using `@aws-amplify/ui-react-storage`.
+</Note>
+
+### Custom auth adapter
+
+For non-Amplify auth or custom S3 access control, use `createStorageBrowser` with `createManagedAuthAdapter`:
+
+```tsx
+import {
+  createStorageBrowser,
+  createManagedAuthAdapter,
+} from '@aws-amplify/ui-react-storage';
+import '@aws-amplify/ui-react-storage/styles.css';
+
+const { StorageBrowser } = createStorageBrowser({
+  config: createManagedAuthAdapter({
+    credentialsProvider: async () => {
+      // Return AWS credentials for the signed-in user
+      return { credentials: await getMyCredentials() };
+    },
+    region: 'us-east-1',
+    accountId: '123456789012',
+    registerAuthListener: (onSignOut) => {
+      // Call onSignOut when the user signs out
+    },
+  }),
+});
+
+export function BrowserPage() {
+  return <StorageBrowser />;
+}
+```
+
+---
+
+## FileUploader
+
+`FileUploader` is a lower-level upload component with the same drag-and-drop interface but without the `StorageManager` wrapper. It accepts the same props as `StorageManager`.
+
+```tsx
+import { FileUploader } from '@aws-amplify/ui-react-storage';
+
+function UploadPage() {
+  return (
+    <FileUploader
+      acceptedFileTypes={['image/*']}
+      path="public/avatars/"
+      maxFileCount={1}
+      onUploadSuccess={({ key }) => console.log('Avatar uploaded:', key)}
+    />
+  );
+}
+```
+
+<Tip>
+  Use `FileUploader` when you need a ref handle to programmatically clear the file list. Call `ref.current.clearFiles()` using `useRef<FileUploaderHandle>`.
+</Tip>
+
+```tsx
+import { useRef } from 'react';
+import { FileUploader } from '@aws-amplify/ui-react-storage';
+import type { FileUploaderHandle } from '@aws-amplify/ui-react-storage';
+
+function UploadPage() {
+  const ref = useRef<FileUploaderHandle>(null);
+
+  return (
+    <>
+      <FileUploader
+        ref={ref}
+        path="public/"
+        maxFileCount={3}
+      />
+      <button onClick={() => ref.current?.clearFiles()}>
+        Clear files
+      </button>
+    </>
+  );
+}
+```
+
+---
+
+## StorageImage
+
+`StorageImage` renders an image stored in S3, automatically fetching a signed URL and displaying the image in a standard `<img>` element.
+
+```tsx
+import { StorageImage } from '@aws-amplify/ui-react-storage';
+
+function ProfilePage() {
+  return (
+    <StorageImage
+      path="public/avatars/user-123.png"
+      alt="User avatar"
+      fallbackSrc="/images/default-avatar.png"
+    />
+  );
+}
+```
+
+### `StorageImage` props
+
+<ParamField path="path" type="string | ((input: { identityId?: string }) => string)" required>
+  The S3 key for the image. Accepts a string or a callback for identity-scoped paths.
+</ParamField>
+
+<ParamField path="alt" type="string" required>
+  Alt text for the image element. Required for accessibility.
+</ParamField>
+
+<ParamField path="fallbackSrc" type="string">
+  URL of a fallback image to display if the S3 object cannot be retrieved.
+</ParamField>
+
+<ParamField path="validateObjectExistence" type="boolean">
+  When `true`, validates that the S3 object exists before rendering. Calls `onGetUrlError` if the object is not found.
+</ParamField>
+
+<ParamField path="onGetUrlError" type="(error: Error) => void">
+  Called when the signed URL request fails.
+</ParamField>
+
+<ParamField path="bucket" type="string | BucketInfo">
+  Target S3 bucket. Accepts the friendly name or a `{ bucketName, region }` object.
+</ParamField>
+
+<ParamField path="loadingElement" type="React.ReactNode">
+  Content to display while the signed URL is being fetched.
+</ParamField>
+
+### Identity-scoped image
+
+```tsx
+<StorageImage
+  path={({ identityId }) => `protected/${identityId}/profile.jpg`}
+  alt="Profile photo"
+  fallbackSrc="/images/default-avatar.png"
+/>
+```

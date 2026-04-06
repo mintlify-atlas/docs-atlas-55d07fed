@@ -1,0 +1,182 @@
+---
+title: 'React'
+description: 'Amplify UI for React — primitives, connected components, and theming'
+keywords: ['amplify', 'react', 'ui', 'components', 'primitives', 'theming']
+---
+
+`@aws-amplify/ui-react` is the primary Amplify UI package. It provides a full set of primitive components, connected components (such as `Authenticator` and `AccountSettings`), theming utilities, and hooks — all built for React 16, 17, 18, and 19.
+
+**Current version:** `6.15.2`
+
+## Installation
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install @aws-amplify/ui-react aws-amplify
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @aws-amplify/ui-react aws-amplify
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @aws-amplify/ui-react aws-amplify
+    ```
+  </Tab>
+</Tabs>
+
+## Basic setup
+
+Import the stylesheet and configure Amplify before rendering your app:
+
+```tsx main.tsx
+import { Amplify } from 'aws-amplify';
+import '@aws-amplify/ui-react/styles.css';
+import outputs from '../amplify_outputs.json';
+
+Amplify.configure(outputs);
+```
+
+Then use any component directly in your JSX:
+
+```tsx App.tsx
+import { Authenticator } from '@aws-amplify/ui-react';
+
+export default function App() {
+  return (
+    <Authenticator>
+      {({ signOut, user }) => (
+        <main>
+          <h1>Hello, {user?.username}</h1>
+          <button onClick={signOut}>Sign out</button>
+        </main>
+      )}
+    </Authenticator>
+  );
+}
+```
+
+## What's included
+
+<CardGroup cols={3}>
+  <Card title="Primitives" icon="blocks">
+    Over 40 accessible UI primitives — buttons, inputs, layouts, typography, and more — all styled with design tokens.
+  </Card>
+  <Card title="Connected components" icon="plug">
+    Higher-level components wired to Amplify backends: `Authenticator`, `AccountSettings`, and `FileSelect`.
+  </Card>
+  <Card title="Theming" icon="paintbrush">
+    Token-based theming via `createTheme` and `ThemeProvider`. Supports dark mode, CSS variables, and runtime overrides.
+  </Card>
+</CardGroup>
+
+## Primitives
+
+The following primitive components are available from the main entry point:
+
+<AccordionGroup>
+  <Accordion title="Form inputs">
+    `TextField`, `TextAreaField`, `PasswordField`, `PhoneNumberField`, `CheckboxField`, `RadioGroupField`, `SelectField`, `SliderField`, `StepperField`, `SwitchField`, `SearchField`, `Autocomplete`
+  </Accordion>
+  <Accordion title="Layout">
+    `Flex`, `Grid`, `View`, `Divider`, `Fieldset`, `FieldGroup`, `Card`, `ScrollView`
+  </Accordion>
+  <Accordion title="Typography and media">
+    `Heading`, `Text`, `Link`, `Badge`, `Icon`, `Image`, `Avatar`, `Rating`, `HighlightMatch`
+  </Accordion>
+  <Accordion title="Feedback and status">
+    `Alert`, `Loader`, `Placeholder`, `Message`
+  </Accordion>
+  <Accordion title="Navigation and disclosure">
+    `Tabs`, `Accordion`, `Menu`, `Breadcrumbs`, `Pagination`
+  </Accordion>
+  <Accordion title="Actions">
+    `Button`, `ButtonGroup`, `ToggleButton`, `ToggleButtonGroup`, `DropZone`
+  </Accordion>
+  <Accordion title="Data display">
+    `Table`, `Collection`, `VisuallyHidden`
+  </Accordion>
+</AccordionGroup>
+
+## Connected components
+
+| Component | Description |
+|---|---|
+| `Authenticator` | Full sign-in, sign-up, and MFA flow connected to Amazon Cognito |
+| `AccountSettings` | User profile management (change password, delete account) |
+| `FileSelect` | File picker with upload integration |
+
+## Hooks
+
+```tsx
+import { useTheme, useBreakpointValue } from '@aws-amplify/ui-react';
+
+function MyComponent() {
+  const { tokens } = useTheme();
+  const variant = useBreakpointValue({ base: 'small', large: 'large' });
+
+  return <div style={{ color: tokens.colors.brand.primary[80].value }}>{variant}</div>;
+}
+```
+
+## Theming
+
+```tsx
+import { createTheme, ThemeProvider } from '@aws-amplify/ui-react';
+
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      brand: {
+        primary: {
+          80: { value: '#007bff' },
+        },
+      },
+    },
+  },
+});
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      {/* your app */}
+    </ThemeProvider>
+  );
+}
+```
+
+## Stylesheet variants
+
+| Import | Description |
+|---|---|
+| `@aws-amplify/ui-react/styles.css` | Default stylesheet (recommended) |
+| `@aws-amplify/ui-react/styles.layer.css` | Stylesheet wrapped in a CSS `@layer` for easier cascade control |
+
+## Peer dependencies
+
+| Package | Required version |
+|---|---|
+| `react` | `^16.14.0 \|\| ^17 \|\| ^18 \|\| ^19` |
+| `react-dom` | `^16.14 \|\| ^17 \|\| ^18 \|\| ^19` |
+| `aws-amplify` | `^6.14.3` (optional — only needed for connected components) |
+
+## Feature comparison
+
+| Feature | React | Angular | Vue | React Native |
+|---|:---:|:---:|:---:|:---:|
+| Primitives (40+) | ✓ | — | — | — |
+| Authenticator | ✓ | ✓ | ✓ | ✓ |
+| AccountSettings | ✓ | — | — | — |
+| InAppMessaging | — | — | — | ✓ |
+| Theming (CSS tokens) | ✓ | ✓ | ✓ | — |
+| Server components | ✓ | — | — | — |
+
+## Related
+
+- [Server components](/frameworks/react/server-components) — Using Amplify UI with React Server Components and Next.js App Router
+- [Authenticator component](/connected-components/authenticator) — Full reference for the Authenticator
+- [Theming](/theming/overview) — Design token reference and customization guide

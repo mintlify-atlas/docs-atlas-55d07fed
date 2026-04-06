@@ -1,0 +1,288 @@
+---
+title: "Authenticator"
+description: "Drop-in authentication UI with support for sign in, sign up, MFA, SSO, and passkeys"
+keywords: ["authenticator", "auth", "sign in", "sign up", "MFA", "SSO", "passkeys", "aws amplify"]
+---
+
+The `Authenticator` component provides a complete authentication UI out of the box. It connects to your Amplify Auth backend and handles sign in, sign up, password reset, MFA, and social sign-in flows without any additional configuration.
+
+## Installation
+
+<Tabs>
+  <Tab title="React">
+    ```bash
+    npm install @aws-amplify/ui-react aws-amplify
+    ```
+  </Tab>
+  <Tab title="Angular">
+    ```bash
+    npm install @aws-amplify/ui-angular aws-amplify
+    ```
+  </Tab>
+  <Tab title="Vue">
+    ```bash
+    npm install @aws-amplify/ui-vue aws-amplify
+    ```
+  </Tab>
+</Tabs>
+
+## Basic usage
+
+Wrap your authenticated content in `<Authenticator>`. When the user is not signed in, the component renders the auth UI. Once authenticated, it renders your content.
+
+<Tabs>
+  <Tab title="React">
+    ```tsx
+    import { Amplify } from 'aws-amplify';
+    import { Authenticator } from '@aws-amplify/ui-react';
+    import '@aws-amplify/ui-react/styles.css';
+
+    import outputs from './amplify_outputs.json';
+
+    Amplify.configure(outputs);
+
+    export default function App() {
+      return (
+        <Authenticator>
+          {({ signOut, user }) => (
+            <main>
+              <h1>Hello, {user?.username}</h1>
+              <button onClick={signOut}>Sign out</button>
+            </main>
+          )}
+        </Authenticator>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Angular">
+    ```typescript
+    // app.module.ts
+    import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+
+    @NgModule({
+      imports: [AmplifyAuthenticatorModule],
+    })
+    export class AppModule {}
+    ```
+
+    ```html
+    <!-- app.component.html -->
+    <amplify-authenticator>
+      <ng-template amplifySlot="authenticated" let-user="user" let-signOut="signOut">
+        <h1>Hello, {{ user.username }}</h1>
+        <button (click)="signOut()">Sign out</button>
+      </ng-template>
+    </amplify-authenticator>
+    ```
+  </Tab>
+  <Tab title="Vue">
+    ```vue
+    <script setup>
+    import { Authenticator } from '@aws-amplify/ui-vue';
+    import '@aws-amplify/ui-vue/styles.css';
+    </script>
+
+    <template>
+      <authenticator>
+        <template v-slot="{ user, signOut }">
+          <h1>Hello, {{ user.username }}</h1>
+          <button @click="signOut">Sign out</button>
+        </template>
+      </authenticator>
+    </template>
+    ```
+  </Tab>
+</Tabs>
+
+## `withAuthenticator` HOC
+
+Use the `withAuthenticator` higher-order component to wrap an existing component. It defaults to `variation="modal"`.
+
+```tsx
+import { withAuthenticator } from '@aws-amplify/ui-react';
+import type { WithAuthenticatorProps } from '@aws-amplify/ui-react';
+
+function App({ signOut, user }: WithAuthenticatorProps) {
+  return (
+    <main>
+      <h1>Hello, {user?.username}</h1>
+      <button onClick={signOut}>Sign out</button>
+    </main>
+  );
+}
+
+export default withAuthenticator(App);
+```
+
+You can pass the same options as `<Authenticator>` props as the second argument:
+
+```tsx
+export default withAuthenticator(App, {
+  variation: 'modal',
+  loginMechanisms: ['email'],
+  socialProviders: ['google', 'facebook'],
+});
+```
+
+## `useAuthenticator` hook
+
+Access authenticator state and methods anywhere inside an `<Authenticator>` or `Authenticator.Provider` tree.
+
+```tsx
+import { useAuthenticator } from '@aws-amplify/ui-react';
+
+function SignOutButton() {
+  const { user, signOut, route } = useAuthenticator((context) => [
+    context.user,
+    context.signOut,
+    context.route,
+  ]);
+
+  if (route !== 'authenticated') return null;
+
+  return (
+    <div>
+      <p>Signed in as: {user.username}</p>
+      <button onClick={signOut}>Sign out</button>
+    </div>
+  );
+}
+```
+
+<Note>
+  Pass a selector function to `useAuthenticator` to subscribe only to the state slices you need. This prevents unnecessary re-renders.
+</Note>
+
+## Props
+
+<ParamField path="variation" type="string">
+  Controls the layout style. Use `"default"` for an inline form or `"modal"` to display in a centered modal overlay.
+</ParamField>
+
+<ParamField path="loginMechanisms" type="string[]">
+  The authentication attributes users can sign in with. Accepted values: `"username"`, `"email"`, `"phone_number"`. Defaults to values configured in your Amplify backend.
+</ParamField>
+
+<ParamField path="socialProviders" type="string[]">
+  List of OAuth/OIDC social identity providers to display. Accepted values: `"amazon"`, `"apple"`, `"facebook"`, `"google"`.
+</ParamField>
+
+<ParamField path="initialState" type="string">
+  The initial authentication screen to display. Accepted values: `"signIn"`, `"signUp"`, `"forgotPassword"`. Defaults to `"signIn"`.
+</ParamField>
+
+<ParamField path="signUpAttributes" type="string[]">
+  Additional user attributes to collect during sign-up (e.g., `["name", "phone_number"]`). These are added to the sign-up form automatically.
+</ParamField>
+
+<ParamField path="formFields" type="object">
+  Customize individual form fields across authentication flows. See [customizing form fields](#customizing-form-fields) below.
+</ParamField>
+
+<ParamField path="hideSignUp" type="boolean">
+  When `true`, removes the link to the sign-up screen. Defaults to `false`.
+</ParamField>
+
+<ParamField path="components" type="object">
+  Override built-in sub-components such as `Header`, `Footer`, `SignIn.Header`, `SignIn.Footer`, `SignUp.Header`, `SignUp.Footer`, etc.
+</ParamField>
+
+<ParamField path="services" type="object">
+  Override authentication service methods. Accepts `handleSignIn`, `handleSignUp`, `handleConfirmSignIn`, `handleConfirmSignUp`, `handleForgotPassword`, and `handleForgotPasswordSubmit`.
+</ParamField>
+
+## Customizing form fields
+
+Use the `formFields` prop to adjust labels, placeholders, ordering, and default values for any field in any flow.
+
+```tsx
+<Authenticator
+  formFields={{
+    signIn: {
+      username: {
+        label: 'Email address',
+        placeholder: 'Enter your email',
+        isRequired: true,
+        order: 1,
+      },
+    },
+    signUp: {
+      email: {
+        label: 'Email address',
+        placeholder: 'Enter your email',
+        isRequired: true,
+        order: 1,
+      },
+      phone_number: {
+        order: 2,
+      },
+      name: {
+        label: 'Full name',
+        placeholder: 'Enter your full name',
+        isRequired: true,
+        order: 3,
+      },
+    },
+  }}
+>
+  {({ signOut, user }) => <h1>Hello, {user?.username}</h1>}
+</Authenticator>
+```
+
+## MFA configuration
+
+MFA is configured in your Amplify backend. The Authenticator renders the appropriate MFA screens (TOTP setup, SMS confirmation) automatically based on your backend configuration.
+
+To prompt TOTP setup after sign-in, configure your Amplify Auth resource with `multifactor: { mode: 'REQUIRED', totp: true }`. The Authenticator handles the `setupTotp` route automatically.
+
+```tsx
+// Render a custom TOTP setup screen
+<Authenticator
+  components={{
+    SetupTotp: {
+      Header() {
+        return <h3>Set up your authenticator app</h3>;
+      },
+    },
+  }}
+>
+  {({ signOut }) => <button onClick={signOut}>Sign out</button>}
+</Authenticator>
+```
+
+## Sub-components
+
+The `Authenticator` namespace exposes individual route components for advanced use cases where you want to compose the UI yourself inside an `Authenticator.Provider`.
+
+```tsx
+import { Authenticator } from '@aws-amplify/ui-react';
+
+function CustomAuthUI() {
+  return (
+    <Authenticator.Provider>
+      <Authenticator.SignIn />
+      <Authenticator.SignUp />
+      <Authenticator.ForgotPassword />
+      <Authenticator.ForceNewPassword />
+      <Authenticator.SetupTotp />
+      <Authenticator.SelectMfaType />
+      <Authenticator.SetupEmail />
+    </Authenticator.Provider>
+  );
+}
+```
+
+## Social sign-in
+
+Add social providers to display OAuth buttons on the sign-in and sign-up screens:
+
+```tsx
+<Authenticator socialProviders={['google', 'facebook', 'amazon', 'apple']}>
+  {({ signOut, user }) => <h1>Hello, {user?.username}</h1>}
+</Authenticator>
+```
+
+<Warning>
+  Social sign-in requires OAuth configuration in your Amplify Auth backend and the corresponding app registration in each identity provider's developer console.
+</Warning>

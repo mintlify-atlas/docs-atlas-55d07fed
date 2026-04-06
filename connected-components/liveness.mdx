@@ -1,0 +1,223 @@
+---
+title: "FaceLivenessDetector"
+description: "Real-time face liveness detection using AWS Rekognition"
+keywords: ["liveness", "face liveness", "rekognition", "biometric", "aws amplify"]
+---
+
+`FaceLivenessDetector` provides a camera-based liveness check powered by Amazon Rekognition Face Liveness. It guides the user through a challenge and signals when the session is ready for server-side result retrieval.
+
+## Installation
+
+```bash
+npm install @aws-amplify/ui-react-liveness @aws-amplify/ui-react aws-amplify
+```
+
+<Warning>
+  `FaceLivenessDetector` requires access to the user's camera. Always deploy over HTTPS; camera access is blocked on insecure origins.
+</Warning>
+
+## CSS import
+
+Import the stylesheet before rendering the component:
+
+```tsx
+import '@aws-amplify/ui-react/styles.css';
+import '@aws-amplify/ui-react-liveness/styles.css';
+```
+
+## Setup
+
+Liveness detection requires a session created server-side using the AWS Rekognition `CreateFaceLivenessSession` API. The session ID is then passed to the component.
+
+<Steps>
+  <Step title="Create a liveness session on your server">
+    Call `CreateFaceLivenessSession` from your backend and return the `SessionId` to the client. Never call this API client-side, as it requires AWS credentials.
+
+    ```typescript
+    // Example: AWS SDK v3 in a Next.js API route
+    import { RekognitionClient, CreateFaceLivenessSessionCommand } from '@aws-sdk/client-rekognition';
+
+    export async function POST() {
+      const client = new RekognitionClient({ region: 'us-east-1' });
+      const { SessionId } = await client.send(
+        new CreateFaceLivenessSessionCommand({})
+      );
+      return Response.json({ sessionId: SessionId });
+    }
+    ```
+  </Step>
+  <Step title="Fetch the session ID on the client">
+    ```tsx
+    const [sessionId, setSessionId] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+      fetch('/api/liveness/session', { method: 'POST' })
+        .then((res) => res.json())
+        .then(({ sessionId }) => setSessionId(sessionId));
+    }, []);
+    ```
+  </Step>
+  <Step title="Render the detector">
+    ```tsx
+    {sessionId && (
+      <FaceLivenessDetector
+        sessionId={sessionId}
+        region="us-east-1"
+        onAnalysisComplete={handleComplete}
+        onError={handleError}
+      />
+    )}
+    ```
+  </Step>
+  <Step title="Retrieve results on your server">
+    After `onAnalysisComplete` fires, call `GetFaceLivenessSessionResults` from your backend using the same `sessionId`.
+  </Step>
+</Steps>
+
+## Basic usage
+
+```tsx
+import React from 'react';
+import { Amplify } from 'aws-amplify';
+import FaceLivenessDetector from '@aws-amplify/ui-react-liveness';
+import '@aws-amplify/ui-react/styles.css';
+import '@aws-amplify/ui-react-liveness/styles.css';
+
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+
+function LivenessPage() {
+  const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [livenessResult, setLivenessResult] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/liveness/session', { method: 'POST' })
+      .then((res) => res.json())
+      .then(({ sessionId }) => setSessionId(sessionId));
+  }, []);
+
+  async function handleAnalysisComplete() {
+    // Fetch liveness result from your backend
+    const response = await fetch(`/api/liveness/result?sessionId=${sessionId}`);
+    const { isLive } = await response.json();
+    setLivenessResult(isLive ? 'Live person detected' : 'Liveness check failed');
+  }
+
+  function handleError(error: { state: string; error: Error }) {
+    console.error('Liveness error:', error.state, error.error.message);
+  }
+
+  if (livenessResult) {
+    return <p>{livenessResult}</p>;
+  }
+
+  if (!sessionId) {
+    return <p>Creating liveness session…</p>;
+  }
+
+  return (
+    <FaceLivenessDetector
+      sessionId={sessionId}
+      region="us-east-1"
+      onAnalysisComplete={handleAnalysisComplete}
+      onError={handleError}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="sessionId" type="string" required>
+  The session ID returned by `CreateFaceLivenessSession`. Must be created server-side.
+</ParamField>
+
+<ParamField path="region" type="string" required>
+  The AWS region where the Rekognition liveness session was created (e.g., `"us-east-1"`).
+</ParamField>
+
+<ParamField path="onAnalysisComplete" type="(deviceInfo?: DeviceInfo) => Promise<void>" required>
+  Callback fired when the liveness session analysis is complete. At this point, call your backend to retrieve results via `GetFaceLivenessSessionResults`. Receives optional device information about the selected camera.
+</ParamField>
+
+<ParamField path="onError" type="(error: LivenessError, deviceInfo?: DeviceInfo) => void">
+  Callback fired when an error occurs during any step of the liveness check. `LivenessError` has a `state` string and an `error` Error object.
+</ParamField>
+
+<ParamField path="onUserCancel" type="() => void">
+  Callback fired when the user cancels the liveness flow before completion.
+</ParamField>
+
+<ParamField path="disableStartScreen" type="boolean" default="false">
+  Skip the introductory "Get ready" screen and start the camera check immediately.
+</ParamField>
+
+<ParamField path="config" type="FaceLivenessDetectorConfig">
+  Advanced configuration options.
+
+  <Expandable title="config properties">
+    <ParamField path="config.deviceId" type="string">
+      Pre-select a specific camera by device ID.
+    </ParamField>
+    <ParamField path="config.binaryPath" type="string">
+      Override the CDN path for the TensorFlow.js WASM backend binaries.
+    </ParamField>
+    <ParamField path="config.faceModelUrl" type="string">
+      Override the CDN URL for the Blazeface face detection model.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="components" type="FaceLivenessDetectorComponents">
+  Override UI sub-components such as the start screen and error display.
+</ParamField>
+
+<ParamField path="displayText" type="LivenessDisplayText">
+  Override the default display text for instructions, button labels, and status messages.
+</ParamField>
+
+## Customizing display text
+
+```tsx
+<FaceLivenessDetector
+  sessionId={sessionId}
+  region="us-east-1"
+  onAnalysisComplete={handleAnalysisComplete}
+  displayText={{
+    startScreenBeginCheckText: 'Start face check',
+    photosensitiveWarningBodyText:
+      'This check uses flashing lights. Stop if you experience discomfort.',
+  }}
+/>
+```
+
+## Regional availability
+
+<Note>
+  Amazon Rekognition Face Liveness is not available in all AWS regions. Check the [Amazon Rekognition endpoints and quotas](https://docs.aws.amazon.com/general/latest/gr/rekognition.html) page for current regional support. The `region` prop must match the region where you created the session.
+</Note>
+
+## Error handling
+
+The `LivenessError` object passed to `onError` includes a `state` field that indicates where in the flow the error occurred, allowing you to handle different failure modes:
+
+```tsx
+<FaceLivenessDetector
+  sessionId={sessionId}
+  region="us-east-1"
+  onAnalysisComplete={handleAnalysisComplete}
+  onError={({ state, error }) => {
+    switch (state) {
+      case 'CAMERA_ACCESS_ERROR':
+        showMessage('Camera access was denied. Please allow camera access and try again.');
+        break;
+      case 'SERVER_ERROR':
+        showMessage('A server error occurred. Please try again.');
+        break;
+      default:
+        console.error('Liveness error:', state, error.message);
+    }
+  }}
+/>
+```

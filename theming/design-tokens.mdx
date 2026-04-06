@@ -1,0 +1,333 @@
+---
+title: 'Design Tokens'
+description: 'All available design tokens for colors, spacing, typography, and more'
+keywords: ['design tokens', 'CSS variables', 'colors', 'spacing', 'typography', 'theming']
+---
+
+Design tokens are the named values that define the visual properties of Amplify UI. Every spacing value, color, font size, and border radius is a token. Tokens compile to CSS custom properties, so you can override them in a theme or consume them directly in your own CSS.
+
+## Token naming convention
+
+A token's CSS variable name is derived from its path in the theme object, prefixed with `--amplify-` and joined with hyphens:
+
+```
+tokens.colors.font.primary  →  --amplify-colors-font-primary
+tokens.space.medium         →  --amplify-space-medium
+tokens.fontSizes.large      →  --amplify-font-sizes-large
+tokens.radii.medium         →  --amplify-radii-medium
+```
+
+## Overriding tokens in `createTheme`
+
+Pass a partial `tokens` object to `createTheme`. Only the keys you provide are overridden; everything else falls back to the default theme.
+
+```tsx
+import { createTheme } from '@aws-amplify/ui';
+
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      font: {
+        primary: { value: '#1a1a2e' },
+      },
+      background: {
+        primary: { value: '#f8f9ff' },
+      },
+    },
+    space: {
+      medium: { value: '1.25rem' },
+    },
+    radii: {
+      medium: { value: '0.375rem' },
+    },
+  },
+});
+```
+
+## Using tokens in custom CSS
+
+Reference the compiled CSS variables in your own stylesheets:
+
+```css
+.my-card {
+  background-color: var(--amplify-colors-background-primary);
+  border: var(--amplify-border-widths-small) solid var(--amplify-colors-border-primary);
+  border-radius: var(--amplify-radii-medium);
+  padding: var(--amplify-space-medium);
+  box-shadow: var(--amplify-shadows-medium);
+  color: var(--amplify-colors-font-primary);
+  font-size: var(--amplify-font-sizes-medium);
+}
+```
+
+## Token reference
+
+<AccordionGroup>
+  <Accordion title="Colors">
+    Colors are organized into palettes and semantic groups.
+
+    ### Color palettes
+
+    Each palette has shades on a scale of `10` (lightest) to `100` (darkest).
+
+    | Token path | CSS variable | Default (light mode) |
+    |---|---|---|
+    | `colors.red.10` | `--amplify-colors-red-10` | `hsl(0, 75%, 95%)` |
+    | `colors.red.20` | `--amplify-colors-red-20` | `hsl(0, 75%, 85%)` |
+    | `colors.red.40` | `--amplify-colors-red-40` | `hsl(0, 75%, 75%)` |
+    | `colors.red.60` | `--amplify-colors-red-60` | `hsl(0, 50%, 50%)` |
+    | `colors.red.80` | `--amplify-colors-red-80` | `hsl(0, 95%, 30%)` |
+    | `colors.red.90` | `--amplify-colors-red-90` | `hsl(0, 100%, 20%)` |
+    | `colors.red.100` | `--amplify-colors-red-100` | `hsl(0, 100%, 15%)` |
+    | `colors.orange.10–100` | `--amplify-colors-orange-*` | `hsl(30, …)` |
+    | `colors.yellow.10–100` | `--amplify-colors-yellow-*` | `hsl(60, …)` |
+    | `colors.green.10–100` | `--amplify-colors-green-*` | `hsl(130, …)` |
+    | `colors.teal.10–100` | `--amplify-colors-teal-*` | `hsl(190, …)` |
+    | `colors.blue.10–100` | `--amplify-colors-blue-*` | `hsl(220, …)` |
+    | `colors.purple.10–100` | `--amplify-colors-purple-*` | `hsl(300, …)` |
+    | `colors.pink.10–100` | `--amplify-colors-pink-*` | `hsl(340, …)` |
+    | `colors.neutral.10–100` | `--amplify-colors-neutral-*` | `hsl(210, …)` |
+
+    The `primary` and `secondary` palettes alias another palette. By default:
+    - `colors.primary.*` aliases `colors.teal.*`
+    - `colors.secondary.*` aliases `colors.purple.*`
+
+    Use the `primaryColor` / `secondaryColor` shortcut in `createTheme` to remap them.
+
+    ### Greyscale
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `colors.white` | `--amplify-colors-white` | `hsl(0, 0%, 100%)` |
+    | `colors.black` | `--amplify-colors-black` | `hsl(0, 0%, 0%)` |
+    | `colors.transparent` | `--amplify-colors-transparent` | `transparent` |
+
+    ### Semantic — font
+
+    | Token path | CSS variable | Default |
+    |---|---|---|
+    | `colors.font.primary` | `--amplify-colors-font-primary` | `{colors.neutral.100}` |
+    | `colors.font.secondary` | `--amplify-colors-font-secondary` | `{colors.neutral.90}` |
+    | `colors.font.tertiary` | `--amplify-colors-font-tertiary` | `{colors.neutral.80}` |
+    | `colors.font.disabled` | `--amplify-colors-font-disabled` | `{colors.neutral.60}` |
+    | `colors.font.inverse` | `--amplify-colors-font-inverse` | `{colors.white}` |
+    | `colors.font.interactive` | `--amplify-colors-font-interactive` | `{colors.primary.80}` |
+    | `colors.font.hover` | `--amplify-colors-font-hover` | `{colors.primary.90}` |
+    | `colors.font.focus` | `--amplify-colors-font-focus` | `{colors.primary.100}` |
+    | `colors.font.active` | `--amplify-colors-font-active` | `{colors.primary.100}` |
+    | `colors.font.info` | `--amplify-colors-font-info` | `{colors.blue.90}` |
+    | `colors.font.warning` | `--amplify-colors-font-warning` | `{colors.orange.90}` |
+    | `colors.font.error` | `--amplify-colors-font-error` | `{colors.red.90}` |
+    | `colors.font.success` | `--amplify-colors-font-success` | `{colors.green.90}` |
+
+    ### Semantic — background
+
+    | Token path | CSS variable | Default |
+    |---|---|---|
+    | `colors.background.primary` | `--amplify-colors-background-primary` | `{colors.white}` |
+    | `colors.background.secondary` | `--amplify-colors-background-secondary` | `{colors.neutral.10}` |
+    | `colors.background.tertiary` | `--amplify-colors-background-tertiary` | `{colors.neutral.20}` |
+    | `colors.background.quaternary` | `--amplify-colors-background-quaternary` | `{colors.neutral.60}` |
+    | `colors.background.disabled` | `--amplify-colors-background-disabled` | `{colors.background.tertiary}` |
+    | `colors.background.info` | `--amplify-colors-background-info` | `{colors.blue.10}` |
+    | `colors.background.warning` | `--amplify-colors-background-warning` | `{colors.orange.10}` |
+    | `colors.background.error` | `--amplify-colors-background-error` | `{colors.red.10}` |
+    | `colors.background.success` | `--amplify-colors-background-success` | `{colors.green.10}` |
+
+    ### Semantic — border
+
+    | Token path | CSS variable | Default |
+    |---|---|---|
+    | `colors.border.primary` | `--amplify-colors-border-primary` | `{colors.neutral.60}` |
+    | `colors.border.secondary` | `--amplify-colors-border-secondary` | `{colors.neutral.40}` |
+    | `colors.border.tertiary` | `--amplify-colors-border-tertiary` | `{colors.neutral.20}` |
+    | `colors.border.disabled` | `--amplify-colors-border-disabled` | `{colors.border.tertiary}` |
+    | `colors.border.pressed` | `--amplify-colors-border-pressed` | `{colors.primary.100}` |
+    | `colors.border.focus` | `--amplify-colors-border-focus` | `{colors.primary.100}` |
+    | `colors.border.error` | `--amplify-colors-border-error` | `{colors.red.80}` |
+    | `colors.border.info` | `--amplify-colors-border-info` | `{colors.blue.80}` |
+    | `colors.border.success` | `--amplify-colors-border-success` | `{colors.green.80}` |
+    | `colors.border.warning` | `--amplify-colors-border-warning` | `{colors.orange.80}` |
+
+    ### Semantic — shadow
+
+    | Token path | CSS variable | Default |
+    |---|---|---|
+    | `colors.shadow.primary` | `--amplify-colors-shadow-primary` | `hsla(210, 50%, 10%, 0.25)` |
+    | `colors.shadow.secondary` | `--amplify-colors-shadow-secondary` | `hsla(210, 50%, 10%, 0.15)` |
+    | `colors.shadow.tertiary` | `--amplify-colors-shadow-tertiary` | `hsla(210, 50%, 10%, 0.05)` |
+
+    ### Overlay
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `colors.overlay.5` | `--amplify-colors-overlay-5` | `hsla(0, 0%, 0%, 0.05)` |
+    | `colors.overlay.10` | `--amplify-colors-overlay-10` | `hsla(0, 0%, 0%, 0.1)` |
+    | `colors.overlay.20–90` | `--amplify-colors-overlay-*` | `hsla(0, 0%, 0%, 0.n)` |
+  </Accordion>
+
+  <Accordion title="Space">
+    Space tokens control padding, margin, gap, and other sizing properties. Two scales are available: `rem`-based (relative to the root font size) and `em`-based (relative to the element's font size).
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `space.zero` | `--amplify-space-zero` | `0` |
+    | `space.xxxs` | `--amplify-space-xxxs` | `0.25rem` |
+    | `space.xxs` | `--amplify-space-xxs` | `0.375rem` |
+    | `space.xs` | `--amplify-space-xs` | `0.5rem` |
+    | `space.small` | `--amplify-space-small` | `0.75rem` |
+    | `space.medium` | `--amplify-space-medium` | `1rem` |
+    | `space.large` | `--amplify-space-large` | `1.5rem` |
+    | `space.xl` | `--amplify-space-xl` | `2rem` |
+    | `space.xxl` | `--amplify-space-xxl` | `3rem` |
+    | `space.xxxl` | `--amplify-space-xxxl` | `4.5rem` |
+
+    ### Relative space (`em`-based)
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `space.relative.xxxs` | `--amplify-space-relative-xxxs` | `0.25em` |
+    | `space.relative.xxs` | `--amplify-space-relative-xxs` | `0.375em` |
+    | `space.relative.xs` | `--amplify-space-relative-xs` | `0.5em` |
+    | `space.relative.small` | `--amplify-space-relative-small` | `0.75em` |
+    | `space.relative.medium` | `--amplify-space-relative-medium` | `1em` |
+    | `space.relative.large` | `--amplify-space-relative-large` | `1.5em` |
+    | `space.relative.xl` | `--amplify-space-relative-xl` | `2em` |
+    | `space.relative.xxl` | `--amplify-space-relative-xxl` | `3em` |
+    | `space.relative.xxxl` | `--amplify-space-relative-xxxl` | `4.5em` |
+    | `space.relative.full` | `--amplify-space-relative-full` | `100%` |
+  </Accordion>
+
+  <Accordion title="Typography">
+    ### Font families
+
+    | Token path | CSS variable | Default |
+    |---|---|---|
+    | `fonts.default.variable` | `--amplify-fonts-default-variable` | `'InterVariable', 'Inter var', 'Inter', system-ui, sans-serif` |
+    | `fonts.default.static` | `--amplify-fonts-default-static` | `'Inter', system-ui, sans-serif` |
+
+    ### Font sizes
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `fontSizes.xxxs` | `--amplify-font-sizes-xxxs` | `0.375rem` |
+    | `fontSizes.xxs` | `--amplify-font-sizes-xxs` | `0.5rem` |
+    | `fontSizes.xs` | `--amplify-font-sizes-xs` | `0.75rem` |
+    | `fontSizes.small` | `--amplify-font-sizes-small` | `0.875rem` |
+    | `fontSizes.medium` | `--amplify-font-sizes-medium` | `1rem` |
+    | `fontSizes.large` | `--amplify-font-sizes-large` | `1.25rem` |
+    | `fontSizes.xl` | `--amplify-font-sizes-xl` | `1.5rem` |
+    | `fontSizes.xxl` | `--amplify-font-sizes-xxl` | `2rem` |
+    | `fontSizes.xxxl` | `--amplify-font-sizes-xxxl` | `2.5rem` |
+    | `fontSizes.xxxxl` | `--amplify-font-sizes-xxxxl` | `3rem` |
+
+    ### Font weights
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `fontWeights.hairline` | `--amplify-font-weights-hairline` | `100` |
+    | `fontWeights.thin` | `--amplify-font-weights-thin` | `200` |
+    | `fontWeights.light` | `--amplify-font-weights-light` | `300` |
+    | `fontWeights.normal` | `--amplify-font-weights-normal` | `400` |
+    | `fontWeights.medium` | `--amplify-font-weights-medium` | `500` |
+    | `fontWeights.semibold` | `--amplify-font-weights-semibold` | `600` |
+    | `fontWeights.bold` | `--amplify-font-weights-bold` | `700` |
+    | `fontWeights.extrabold` | `--amplify-font-weights-extrabold` | `800` |
+    | `fontWeights.black` | `--amplify-font-weights-black` | `900` |
+
+    ### Line heights
+
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `lineHeights.small` | `--amplify-line-heights-small` | `1.25` |
+    | `lineHeights.medium` | `--amplify-line-heights-medium` | `1.5` |
+    | `lineHeights.large` | `--amplify-line-heights-large` | `2` |
+  </Accordion>
+
+  <Accordion title="Border widths">
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `borderWidths.small` | `--amplify-border-widths-small` | `1px` |
+    | `borderWidths.medium` | `--amplify-border-widths-medium` | `2px` |
+    | `borderWidths.large` | `--amplify-border-widths-large` | `3px` |
+  </Accordion>
+
+  <Accordion title="Radii">
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `radii.xs` | `--amplify-radii-xs` | `0.125rem` |
+    | `radii.small` | `--amplify-radii-small` | `0.25rem` |
+    | `radii.medium` | `--amplify-radii-medium` | `0.5rem` |
+    | `radii.large` | `--amplify-radii-large` | `1rem` |
+    | `radii.xl` | `--amplify-radii-xl` | `2rem` |
+    | `radii.xxl` | `--amplify-radii-xxl` | `4rem` |
+    | `radii.xxxl` | `--amplify-radii-xxxl` | `8rem` |
+
+    <Tip>Use `radii.xxxl` to create fully rounded (pill) shapes.</Tip>
+  </Accordion>
+
+  <Accordion title="Shadows">
+    Shadow tokens use the `box-shadow` composite value format.
+
+    | Token path | CSS variable | Effect |
+    |---|---|---|
+    | `shadows.small` | `--amplify-shadows-small` | `0 2px 4px {colors.shadow.tertiary}` |
+    | `shadows.medium` | `--amplify-shadows-medium` | `0 2px 6px {colors.shadow.secondary}` |
+    | `shadows.large` | `--amplify-shadows-large` | `0 4px 12px {colors.shadow.primary}` |
+
+    Shadow colors automatically invert in dark mode via `colors.shadow.*` tokens.
+  </Accordion>
+
+  <Accordion title="Opacities">
+    | Token path | CSS variable | Value |
+    |---|---|---|
+    | `opacities.0` | `--amplify-opacities-0` | `0` |
+    | `opacities.10` | `--amplify-opacities-10` | `0.1` |
+    | `opacities.20` | `--amplify-opacities-20` | `0.2` |
+    | `opacities.30` | `--amplify-opacities-30` | `0.3` |
+    | `opacities.40` | `--amplify-opacities-40` | `0.4` |
+    | `opacities.50` | `--amplify-opacities-50` | `0.5` |
+    | `opacities.60` | `--amplify-opacities-60` | `0.6` |
+    | `opacities.70` | `--amplify-opacities-70` | `0.7` |
+    | `opacities.80` | `--amplify-opacities-80` | `0.8` |
+    | `opacities.90` | `--amplify-opacities-90` | `0.9` |
+    | `opacities.100` | `--amplify-opacities-100` | `1` |
+  </Accordion>
+</AccordionGroup>
+
+## Token references
+
+Tokens can reference other tokens using the `{path}` syntax. The compiler resolves these references at build time and generates a CSS variable reference (`var(--amplify-...)`) in the output:
+
+```typescript
+const theme = createTheme({
+  name: 'my-theme',
+  tokens: {
+    colors: {
+      font: {
+        // Reference another token by path
+        primary: { value: '{colors.neutral.100.value}' },
+      },
+      background: {
+        primary: { value: '{colors.white.value}' },
+      },
+    },
+  },
+});
+```
+
+This compiles to:
+
+```css
+[data-amplify-theme="my-theme"] {
+  --amplify-colors-font-primary: var(--amplify-colors-neutral-100);
+  --amplify-colors-background-primary: var(--amplify-colors-white);
+}
+```
+
+## Related pages
+
+- [Theming Overview](/theming/overview) — how the theming system works
+- [Dark Mode](/theming/dark-mode) — token overrides for dark mode
+- [Responsive Design](/theming/responsive) — breakpoints and responsive values

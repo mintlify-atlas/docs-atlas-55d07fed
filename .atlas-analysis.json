@@ -1,26 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Amplify UI",
+  "projectType": "frontend",
+  "projectName": "Amplify UI",
+  "projectDescription": "A collection of accessible, themeable, cloud-connected UI components for React, Angular, Vue, and React Native that integrate seamlessly with AWS Amplify.",
   "theme": "willow",
-  "colors": {
-    "primary": "#040404"
-  },
-  "favicon": "https://icons.duckduckgo.com/ip3/ui.docs.amplify.aws.ico",
-  "logo": {
-    "light": "https://media.brand.dev/5b7695a7-c672-4141-ba88-cbaeb8a7b7fe.svg",
-    "dark": "https://media.brand.dev/5b7695a7-c672-4141-ba88-cbaeb8a7b7fe.svg"
-  },
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/aws-amplify/amplify-ui"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/aws-amplify/amplify-ui"
-    }
-  },
+  "primaryColor": "#040404",
+  "lightColor": null,
+  "darkColor": null,
   "navigation": {
     "tabs": [
       {
@@ -107,5 +92,54 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "Cloud-connected Authenticator component with MFA, SSO, and passkey support",
+    "50+ accessible primitive UI components following WCAG and WAI-ARIA guidelines",
+    "Powerful theming system with design tokens and dark mode support",
+    "Storage components for file uploads, browsing, and image display",
+    "FaceLivenessDetector for biometric verification",
+    "AI conversation components powered by AWS Bedrock",
+    "In-app messaging and notification components",
+    "Geo/map components with location search",
+    "Cross-framework support: React, Angular, Vue, React Native"
+  ],
+  "publicApiSurface": [
+    "Authenticator",
+    "withAuthenticator",
+    "AccountSettings",
+    "StorageManager",
+    "StorageBrowser",
+    "StorageImage",
+    "FileUploader",
+    "FaceLivenessDetector",
+    "AIConversation",
+    "InAppMessagingDisplay",
+    "MapView",
+    "LocationSearch",
+    "ThemeProvider",
+    "createTheme",
+    "defaultTheme",
+    "defaultDarkModeOverride",
+    "useTheme",
+    "useAuth",
+    "useBreakpointValue",
+    "useStorageURL",
+    "Button",
+    "TextField",
+    "Flex",
+    "Grid",
+    "View",
+    "Heading",
+    "Text",
+    "Badge",
+    "Alert",
+    "Card",
+    "Collection",
+    "Table",
+    "Tabs",
+    "Menu",
+    "Loader",
+    "Pagination"
+  ]
 }

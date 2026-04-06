@@ -1,0 +1,329 @@
+---
+title: "Layout primitives"
+description: "Flex, Grid, View, ScrollView, and Divider for building layouts in Amplify UI."
+keywords: ["layout", "flex", "grid", "view", "scrollview", "divider", "amplify ui"]
+---
+
+Layout primitives give you flexbox, CSS Grid, and container building blocks. They accept style shorthand props directly so you can control spacing, sizing, and alignment without writing CSS.
+
+```tsx
+import { View, Flex, Grid, ScrollView, Divider } from '@aws-amplify/ui-react';
+```
+
+---
+
+## View
+
+`View` is the base container primitive. Every other Amplify UI primitive extends it. By default it renders a `div`, but you can change the element with the `as` prop.
+
+```tsx
+<View as="section" padding="medium" backgroundColor="background.secondary">
+  <p>Content goes here</p>
+</View>
+```
+
+Use `View` when you need a plain container without flex or grid behavior.
+
+<ParamField path="as" type="React.ElementType" default="div">
+  Changes the underlying HTML element. Accepts any valid HTML tag or React component.
+</ParamField>
+
+<ParamField path="padding" type="string | ResponsiveObject">
+  Maps to the CSS `padding` property. Accepts design token keys (e.g. `"small"`, `"medium"`, `"large"`) or any CSS value.
+</ParamField>
+
+<ParamField path="backgroundColor" type="string | ResponsiveObject">
+  Maps to the CSS `background-color` property. Accepts color design token keys or any CSS color value.
+</ParamField>
+
+<ParamField path="isDisabled" type="boolean">
+  Sets the HTML `disabled` attribute on the element.
+</ParamField>
+
+<ParamField path="className" type="string">
+  Appends a CSS class name to the rendered element.
+</ParamField>
+
+<ParamField path="testId" type="string">
+  Sets the `data-testid` attribute for use in automated tests.
+</ParamField>
+
+---
+
+## Flex
+
+`Flex` is a flexbox container. It extends `View` and maps the `direction`, `wrap`, `gap`, `alignItems`, and `justifyContent` props to their CSS equivalents.
+
+<CodeGroup>
+
+```tsx Row layout
+<Flex direction="row" gap="small" alignItems="center">
+  <Badge variation="success">Active</Badge>
+  <Text>John Smith</Text>
+</Flex>
+```
+
+```tsx Column layout
+<Flex direction="column" gap="medium">
+  <TextField label="First name" />
+  <TextField label="Last name" />
+  <Button variation="primary">Save</Button>
+</Flex>
+```
+
+```tsx Wrapping grid of cards
+<Flex wrap="wrap" gap="medium">
+  {items.map((item) => (
+    <Card key={item.id} width="280px" padding="medium">
+      {item.name}
+    </Card>
+  ))}
+</Flex>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="direction" type="'row' | 'column' | 'row-reverse' | 'column-reverse' | ResponsiveObject" default="row">
+  Maps to CSS `flex-direction`. Accepts a responsive object for breakpoint-specific values.
+</ParamField>
+
+<ParamField path="wrap" type="'nowrap' | 'wrap' | 'wrap-reverse' | ResponsiveObject" default="nowrap">
+  Maps to CSS `flex-wrap`.
+</ParamField>
+
+<ParamField path="gap" type="string | ResponsiveObject">
+  Shorthand for `rowGap` and `columnGap`. Maps to CSS `gap`. Accepts design token keys or CSS values.
+</ParamField>
+
+<ParamField path="alignItems" type="string | ResponsiveObject">
+  Maps to CSS `align-items`. Controls cross-axis alignment of children.
+</ParamField>
+
+<ParamField path="justifyContent" type="string | ResponsiveObject">
+  Maps to CSS `justify-content`. Controls main-axis distribution of children.
+</ParamField>
+
+<ParamField path="alignContent" type="string | ResponsiveObject">
+  Maps to CSS `align-content`. Controls spacing between rows when `wrap` is enabled.
+</ParamField>
+
+### Flex item props
+
+Children inside a `Flex` can use these props to control their own sizing:
+
+<ParamField path="flex" type="string | number | ResponsiveObject">
+  Shorthand for `flexGrow` / `flexShrink` / `flexBasis`. Maps to CSS `flex`.
+</ParamField>
+
+<ParamField path="grow" type="number | ResponsiveObject">
+  Maps to CSS `flex-grow`.
+</ParamField>
+
+<ParamField path="shrink" type="number | ResponsiveObject">
+  Maps to CSS `flex-shrink`.
+</ParamField>
+
+<ParamField path="basis" type="string | number | ResponsiveObject">
+  Maps to CSS `flex-basis`.
+</ParamField>
+
+<ParamField path="order" type="number | ResponsiveObject">
+  Maps to CSS `order`.
+</ParamField>
+
+### Responsive props
+
+All layout props accept a responsive object with breakpoints `base`, `small`, `medium`, `large`, `xl`, and `xxl`:
+
+```tsx
+<Flex
+  direction={{ base: 'column', medium: 'row' }}
+  gap={{ base: 'small', medium: 'large' }}
+>
+  <View flex="1">Sidebar</View>
+  <View flex="3">Main content</View>
+</Flex>
+```
+
+---
+
+## Grid
+
+`Grid` is a CSS Grid container. Use `templateColumns`, `templateRows`, and `gap` to define the grid structure.
+
+<CodeGroup>
+
+```tsx Two-column layout
+<Grid
+  templateColumns="1fr 1fr"
+  gap="medium"
+>
+  <View>Column one</View>
+  <View>Column two</View>
+</Grid>
+```
+
+```tsx Dashboard grid
+<Grid
+  templateColumns="repeat(3, 1fr)"
+  templateRows="auto"
+  gap="large"
+>
+  <Card columnSpan={2}>Wide card</Card>
+  <Card>Narrow card</Card>
+  <Card>Narrow card</Card>
+  <Card columnSpan={3}>Full-width card</Card>
+</Grid>
+```
+
+```tsx Named template areas
+<Grid
+  templateAreas='"header header" "sidebar main" "footer footer"'
+  templateColumns="240px 1fr"
+  templateRows="auto 1fr auto"
+  height="100vh"
+>
+  <View area="header">Header</View>
+  <View area="sidebar">Sidebar</View>
+  <View area="main">Main</View>
+  <View area="footer">Footer</View>
+</Grid>
+```
+
+</CodeGroup>
+
+### Props
+
+<ParamField path="templateColumns" type="string | ResponsiveObject">
+  Maps to CSS `grid-template-columns`. Defines column track sizes.
+</ParamField>
+
+<ParamField path="templateRows" type="string | ResponsiveObject">
+  Maps to CSS `grid-template-rows`. Defines row track sizes.
+</ParamField>
+
+<ParamField path="templateAreas" type="string | ResponsiveObject">
+  Maps to CSS `grid-template-areas`. Assigns names to grid areas.
+</ParamField>
+
+<ParamField path="gap" type="string | ResponsiveObject">
+  Shorthand for `rowGap` and `columnGap`. Maps to CSS `gap`.
+</ParamField>
+
+<ParamField path="columnGap" type="string | ResponsiveObject">
+  Maps to CSS `column-gap`.
+</ParamField>
+
+<ParamField path="rowGap" type="string | ResponsiveObject">
+  Maps to CSS `row-gap`.
+</ParamField>
+
+<ParamField path="autoColumns" type="string | ResponsiveObject">
+  Maps to CSS `grid-auto-columns`. Sets the size of implicitly created column tracks.
+</ParamField>
+
+<ParamField path="autoRows" type="string | ResponsiveObject">
+  Maps to CSS `grid-auto-rows`. Sets the size of implicitly created row tracks.
+</ParamField>
+
+<ParamField path="autoFlow" type="string | ResponsiveObject">
+  Maps to CSS `grid-auto-flow`. Controls how auto-placed items flow.
+</ParamField>
+
+### Grid item props
+
+Children inside a `Grid` can use these props to position themselves:
+
+<ParamField path="area" type="string | ResponsiveObject">
+  Maps to CSS `grid-area`. References a named area from `templateAreas`.
+</ParamField>
+
+<ParamField path="column" type="string | ResponsiveObject">
+  Maps to CSS `grid-column`. Shorthand for column start/end.
+</ParamField>
+
+<ParamField path="columnSpan" type="number | 'auto' | ResponsiveObject">
+  Makes an item span across multiple columns.
+</ParamField>
+
+<ParamField path="row" type="string | ResponsiveObject">
+  Maps to CSS `grid-row`. Shorthand for row start/end.
+</ParamField>
+
+<ParamField path="rowSpan" type="number | 'auto' | ResponsiveObject">
+  Makes an item span across multiple rows.
+</ParamField>
+
+---
+
+## ScrollView
+
+`ScrollView` wraps content in a scrollable container. Constrain the width or height of the component to trigger scrollbars when the content overflows.
+
+```tsx
+<ScrollView maxHeight="400px">
+  {longList.map((item) => (
+    <Text key={item.id} padding="small">
+      {item.label}
+    </Text>
+  ))}
+</ScrollView>
+```
+
+For a horizontal scrolling strip:
+
+```tsx
+<ScrollView maxWidth="600px">
+  <Flex direction="row" wrap="nowrap" gap="small">
+    {images.map((img) => (
+      <Image key={img.id} src={img.url} alt={img.alt} width="200px" />
+    ))}
+  </Flex>
+</ScrollView>
+```
+
+### Props
+
+<ParamField path="autoScroll" type="'smooth' | 'instant' | 'auto'">
+  When set, the `ScrollView` scrolls to the end whenever its children change. Useful for chat interfaces.
+</ParamField>
+
+<ParamField path="maxHeight" type="string | ResponsiveObject">
+  Constrains the height. Content taller than this value becomes vertically scrollable.
+</ParamField>
+
+<ParamField path="maxWidth" type="string | ResponsiveObject">
+  Constrains the width. Content wider than this value becomes horizontally scrollable.
+</ParamField>
+
+---
+
+## Divider
+
+`Divider` renders a semantic `<hr>` element used to separate content regions.
+
+```tsx
+<Flex direction="column" gap="medium">
+  <Heading level={3}>Section one</Heading>
+  <Text>Content for the first section.</Text>
+  <Divider />
+  <Heading level={3}>Section two</Heading>
+  <Text>Content for the second section.</Text>
+</Flex>
+```
+
+For a vertical divider inside a row:
+
+```tsx
+<Flex direction="row" alignItems="center" gap="medium">
+  <Text>Left</Text>
+  <Divider orientation="vertical" />
+  <Text>Right</Text>
+</Flex>
+```
+
+<Note>
+  `Divider` accepts all base `View` style props (`margin`, `borderColor`, `width`, etc.) so you can adjust spacing and color to fit your design.
+</Note>

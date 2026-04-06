@@ -1,0 +1,162 @@
+---
+title: 'React Native'
+description: 'Amplify UI for React Native — authentication and in-app messaging'
+keywords: ['amplify', 'react native', 'ui', 'authenticator', 'in-app messaging', 'mobile']
+---
+
+`@aws-amplify/ui-react-native` brings Amplify UI to React Native applications. It provides the `Authenticator` component, the `InAppMessaging` display system, and a theming API based on React Native's `StyleSheet` — not CSS.
+
+**Current version:** `2.7.2`  
+**Requires:** React Native `>= 0.70`, `react-native-safe-area-context`
+
+## What's included
+
+<CardGroup cols={2}>
+  <Card title="Authenticator" icon="lock">
+    Full sign-in, sign-up, MFA, TOTP, and account recovery flow for React Native. Wraps your app with a higher-order component or renders inline.
+  </Card>
+  <Card title="InAppMessaging" icon="bell">
+    Display Pinpoint in-app messages with `InAppMessageDisplay`. Supports Banner, Modal, Carousel, and FullScreen layouts.
+  </Card>
+</CardGroup>
+
+<CardGroup cols={2}>
+  <Card title="ThemeProvider" icon="paintbrush">
+    Apply a consistent visual theme using `ThemeProvider` and `createTheme` — no CSS, uses React Native style values.
+  </Card>
+  <Card title="useTheme hook" icon="code">
+    Access design tokens at runtime with `useTheme` to build custom components that stay consistent with your theme.
+  </Card>
+</CardGroup>
+
+## Styling
+
+React Native does not use CSS. `@aws-amplify/ui-react-native` uses a JavaScript theme object with React Native style values (numbers for sizes, not strings with units). Apply the theme via `ThemeProvider`:
+
+```tsx
+import { ThemeProvider, createTheme } from '@aws-amplify/ui-react-native';
+
+const theme = createTheme({
+  tokens: {
+    colors: {
+      brand: {
+        primary: { 80: { value: '#007bff' } },
+      },
+    },
+  },
+});
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      {/* your app */}
+    </ThemeProvider>
+  );
+}
+```
+
+<Note>
+  Do not import `@aws-amplify/ui-react/styles.css` or any CSS stylesheet. Stylesheets are not supported in React Native.
+</Note>
+
+## Authenticator
+
+Use the `Authenticator` component to add sign-in and sign-up to a React Native app:
+
+```tsx App.tsx
+import { Authenticator } from '@aws-amplify/ui-react-native';
+import { Amplify } from 'aws-amplify';
+import { Text, Button } from 'react-native';
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+
+export default function App() {
+  return (
+    <Authenticator.Provider>
+      <Authenticator>
+        {({ signOut, user }) => (
+          <>
+            <Text>Hello, {user?.username}</Text>
+            <Button title="Sign out" onPress={signOut} />
+          </>
+        )}
+      </Authenticator>
+    </Authenticator.Provider>
+  );
+}
+```
+
+## InAppMessaging
+
+Display Pinpoint in-app messages in your React Native app:
+
+```tsx App.tsx
+import {
+  InAppMessagingProvider,
+  InAppMessageDisplay,
+} from '@aws-amplify/ui-react-native';
+import { Amplify } from 'aws-amplify';
+import outputs from './amplify_outputs.json';
+
+Amplify.configure(outputs);
+
+export default function App() {
+  return (
+    <InAppMessagingProvider>
+      <InAppMessageDisplay />
+      {/* your app content */}
+    </InAppMessagingProvider>
+  );
+}
+```
+
+### In-app message layouts
+
+| Layout | Component type |
+|---|---|
+| Banner | `BannerMessage` |
+| Modal | `ModalMessage` |
+| Full screen | `FullScreenMessage` |
+| Carousel | `CarouselMessage` |
+
+## Exported API
+
+| Export | Kind | Description |
+|---|---|---|
+| `Authenticator` | Component | Full authentication UI for React Native |
+| `useAuthenticator` | Hook | Reactive access to auth state and controls |
+| `withAuthenticator` | HOC | Wraps a component with authentication gating |
+| `ThemeProvider` | Component | Applies a theme to all child components |
+| `useTheme` | Hook | Access design tokens from within a component |
+| `defaultTheme` | Object | Built-in default theme |
+| `defaultDarkModeOverride` | Object | Token overrides for dark mode |
+| `InAppMessagingProvider` | Component | Provides in-app messaging context |
+| `InAppMessageDisplay` | Component | Renders active in-app messages |
+| `withInAppMessaging` | HOC | Wraps a component with messaging context |
+| `useInAppMessaging` | Hook | Access and control in-app message state |
+
+## Peer dependencies
+
+| Package | Required version |
+|---|---|
+| `react` | `*` |
+| `react-native` | `>= 0.70` |
+| `react-native-safe-area-context` | `*` |
+| `aws-amplify` | `^6.14.3` |
+
+## Feature comparison
+
+| Feature | React Native | React | Angular | Vue |
+|---|:---:|:---:|:---:|:---:|
+| Authenticator | ✓ | ✓ | ✓ | ✓ |
+| InAppMessaging | ✓ | — | — | — |
+| CSS theming | — | ✓ | ✓ | ✓ |
+| JS/StyleSheet theming | ✓ | — | — | — |
+| Primitives (40+) | — | ✓ | — | — |
+| AccountSettings | — | ✓ | — | — |
+
+## Related
+
+- [React Native setup](/frameworks/react-native/setup) — Step-by-step installation with peer dependencies
+- [Authenticator component](/connected-components/authenticator) — Full Authenticator reference

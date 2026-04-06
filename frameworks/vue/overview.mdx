@@ -1,0 +1,115 @@
+---
+title: 'Vue'
+description: 'Amplify UI for Vue — the Authenticator and connected components for Vue 3'
+keywords: ['amplify', 'vue', 'vue 3', 'ui', 'authenticator', 'components']
+---
+
+`@aws-amplify/ui-vue` provides Amplify UI components for Vue 3 applications. The primary component is `Authenticator`, which delivers a complete sign-in, sign-up, and MFA experience connected to Amazon Cognito. Components can be imported individually or registered globally via the Vue plugin.
+
+**Current version:** `4.4.2`  
+**Requires:** Vue `^3.0`
+
+## Installation
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install @aws-amplify/ui-vue aws-amplify
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @aws-amplify/ui-vue aws-amplify
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @aws-amplify/ui-vue aws-amplify
+    ```
+  </Tab>
+</Tabs>
+
+## What's included
+
+<CardGroup cols={2}>
+  <Card title="Authenticator" icon="lock">
+    Full sign-in, sign-up, MFA, TOTP, and account recovery flow. Available as a single `<Authenticator>` component with slot-based customization.
+  </Card>
+  <Card title="useAuthenticator composable" icon="code">
+    Access auth state, the current user, and the `signOut` function from any Vue 3 component using the `useAuthenticator` composable.
+  </Card>
+</CardGroup>
+
+## Basic usage
+
+Import the `Authenticator` component directly in your SFC:
+
+```vue App.vue
+<script setup lang="ts">
+import { Authenticator } from '@aws-amplify/ui-vue';
+import '@aws-amplify/ui-vue/styles.css';
+</script>
+
+<template>
+  <Authenticator>
+    <template v-slot="{ user, signOut }">
+      <h1>Hello, {{ user?.username }}</h1>
+      <button @click="signOut">Sign out</button>
+    </template>
+  </Authenticator>
+</template>
+```
+
+## Using the composable
+
+`useAuthenticator` gives you reactive access to the current authentication state from anywhere in your component tree:
+
+```vue components/UserMenu.vue
+<script setup lang="ts">
+import { useAuthenticator } from '@aws-amplify/ui-vue';
+
+const { user, signOut } = useAuthenticator();
+</script>
+
+<template>
+  <div v-if="user">
+    <span>{{ user.username }}</span>
+    <button @click="signOut">Sign out</button>
+  </div>
+</template>
+```
+
+<Note>
+  `useAuthenticator` must be used inside a component that is a descendant of `<Authenticator>` or `<Authenticator.Provider>`.
+</Note>
+
+## Available exports
+
+| Export | Kind | Description |
+|---|---|---|
+| `Authenticator` | Component | The full Authenticator UI |
+| `useAuthenticator` | Composable | Reactive auth state and controls |
+| `SignIn` | Component | Sign-in step sub-component |
+| `SignUp` | Component | Sign-up step sub-component |
+| `ForgotPassword` | Component | Password reset step |
+| `ConfirmSignIn` | Component | MFA confirmation step |
+| `ConfirmSignUp` | Component | Sign-up verification step |
+| `ConfirmResetPassword` | Component | Reset password confirmation |
+| `ForceNewPassword` | Component | Force-new-password step |
+| `SetupEmail` | Component | Email MFA setup |
+| `FederatedSignIn` | Component | Social/federated sign-in buttons |
+| `AuthenticatorSignUpFormFields` | Component | Customizable sign-up fields |
+| `AuthenticatorForceNewPasswordFormFields` | Component | Force-new-password fields |
+| `translations` | Object | I18n strings for overriding labels |
+
+## Peer dependencies
+
+| Package | Required version |
+|---|---|
+| `vue` | `^3.0` |
+| `aws-amplify` | `^6.14.3` |
+
+## Related
+
+- [Vue setup](/frameworks/vue/setup) — Step-by-step installation and configuration
+- [Authenticator component](/connected-components/authenticator) — Full Authenticator reference
